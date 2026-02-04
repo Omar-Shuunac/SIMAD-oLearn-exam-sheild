@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ course.code }} - oLearn{% endblock %}
+
+{% block header_title %}
+<a href="/courses.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.8rem;">&larr; Back</a>
+<h1 style="margin-top: 4px;">{{ course.code }}: {{ course.title }}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="course-layout" style="display: grid; grid-template-columns: 280px 1fr; gap: 24px; margin-top: 20px;">
+    <!-- Course TOC Sidebar -->
+    <div class="card" style="padding: 20px; height: fit-content;">
+        <ul class="module-list" style="list-style: none; padding: 0;">
+            <li class="module-header"
+                style="font-weight: 700; color: var(--simad-blue); margin-bottom: 12px; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase;">
+                Course Content</li>
+
+            {% for mod in course.modules %}
+            <li style="margin-bottom: 8px;">
+                <a href="#" class="module-item {{ 'active' if loop.first else '' }}"
+                    style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #444; font-size: 0.9rem; padding: 8px; border-radius: 6px;">
+                    <span>📖</span> {{ mod.title }}
+                </a>
+            </li>
+            {% endfor %}
+
+            <li class="module-header"
+                style="font-weight: 700; color: var(--simad-blue); margin: 20px 0 12px 0; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase;">
+                Assessments</li>
+            {% for assign in course.assignments %}
+            <li style="margin-bottom: 8px;">
+                <a href="#"
+                    style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #444; font-size: 0.9rem; padding: 8px;">
+                    <span>📝</span> {{ assign.title }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Main Dynamic Content -->
+    <div class="card" style="padding: 40px;">
+        {% if course.modules %}
+        <h2>{{ course.modules[0].title }}</h2>
+        <div
+            style="aspect-ratio: 16/9; background: #000; border-radius: 12px; margin: 24px 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+            ▶
+        </div>
+        <div style="line-height: 1.8; color: #555;">
+            <p>Welcome to the first module of {{ course.title }}. This module covers the core concepts required for your
+                upcoming mid-term assessment.</p>
+        </div>
+        {% else %}
+        <div style="text-align: center; color: #999; padding: 60px;">
+            <p>No content has been published for this course yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

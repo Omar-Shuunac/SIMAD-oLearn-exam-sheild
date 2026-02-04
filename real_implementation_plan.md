@@ -1,0 +1,48 @@
+# Implementation Plan: SIMAD oLearn - Production Ready Upgrade
+
+This plan outlines the transition from a static prototype to a dynamic, database-backed Learning Management System.
+
+## 1. Database Architecture (SQLite + SQLAlchemy)
+
+We will implement a relational database to store real user and course data.
+
+### Schema Design
+*   **User**: `id`, `name`, `email`, `password_hash`, `role` (Student/Instructor)
+*   **Course**: `id`, `code` (CS-302), `title`, `instructor_id`
+*   **Enrollment**: `id`, `user_id`, `course_id`, `grade`
+*   **Module**: `id`, `course_id`, `title`, `content`
+*   **Assignment**: `id`, `course_id`, `title`, `due_date`
+*   **Submission**: `id`, `assignment_id`, `student_id`, `file_path`, `grade`, `feedback`
+
+## 2. Authentication System (Real Auth)
+
+Replace the mock login with secure session management.
+*   **Registration**: New page `register.html` to create accounts.
+*   **Security**: Use `werkzeug.security` for password hashing (SHA256).
+*   **Session**: Server-side session validation for every route.
+
+## 3. Dynamic Frontend (Jinja2 Templating)
+
+Refactor existing HTML files to accept data from the backend.
+
+*   **Dashboard (`index.html`)**: Loop through `user.enrollments` to show actual courses.
+*   **Course Detail (`course-detail.html`)**: Fetch modules and assignments from the DB based on `course_id`.
+*   **Instructor Dashboard**: Calculate real stats (enrolled count, pending grades) via SQL queries.
+
+## 4. Instructor Features Implementation
+
+*   **Create Course**: A form to add new courses to the DB.
+*   **Gradebook**: A view to list student submissions and input grades.
+*   **Content Editor**: Simple text area to add modules to a course.
+
+## 5. Execution Steps
+
+1.  **Setup DB**: Initialize `models.py` with SQLAlchemy classes.
+2.  **Auth Update**: Rewrite `login()` route and add `register()`.
+3.  **Data Seed**: Create a script to populate initial real-looking data.
+4.  **Template Refactor**: Go file-by-file (Dashboard -> Course -> Exam) replacing static text with variables.
+5.  **Feature Build**: Add the "Submit Assignment" logic (file save) and "Grade" logic (DB update).
+
+## Risks & Mitigations
+*   **Data Loss**: Using SQLite is good for this phase but not for university-scale. *Mitigation: Keep it local for now.*
+*   **Complexity**: Connecting all relations (Student -> Enrollment -> Course) might break existing links. *Mitigation: rigorous testing of the flow.*

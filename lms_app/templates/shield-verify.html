@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identity Verification - Exam Shield</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body style="display: block; background-color: #f0f2f5;">
+
+    <div class="shield-container">
+
+        <div class="brand" style="justify-content: center; margin-bottom: 24px;">
+            SIMAD <span>Exam Shield</span>
+        </div>
+
+        <div class="card">
+            <h1 style="font-size: 1.5rem; margin-bottom: 8px;">Identity Verification</h1>
+            <p style="color: #666; margin-bottom: 24px;">Please center your face in the frame.</p>
+
+            <div class="step-indicator">
+                <div class="step-dot"></div>
+                <div class="step-dot active"></div>
+                <div class="step-dot"></div>
+            </div>
+
+            <div class="camera-box" style="position: relative;">
+                <video id="camera-feed" autoplay muted playsinline
+                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"></video>
+                <canvas id="photo-canvas" style="display: none;"></canvas>
+                <div id="recording-indicator"
+                    style="display: none; position: absolute; top: 10px; right: 10px; color: red; font-weight: bold; font-size: 0.8rem; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 4px;">
+                    ● RECORDING</div>
+                <div class="face-guide"></div>
+            </div>
+
+            <div id="status-box"
+                style="background: #eef7ff; padding: 12px; border-radius: 6px; margin-bottom: 24px; text-align: left; font-size: 0.9rem; color: var(--simad-blue);">
+                <strong id="status-msg">Requirement:</strong> Take a photo and 3s video to verify your ID.
+            </div>
+
+            <div style="display: flex; gap: 16px;">
+                <button class="btn-primary" id="back-btn"
+                    style="flex: 1; background: white; color: #333; border: 1px solid #ddd;"
+                    onclick="history.back()">Back</button>
+                <button class="btn-primary" id="verify-btn" style="flex: 2; background-color: var(--simad-blue);"
+                    onclick="performVerification()">Capture Identity 📸</button>
+                <button class="btn-primary" id="launch-btn"
+                    style="flex: 2; background-color: var(--danger); display: none;" onclick="startExam()">Launch Exam
+                    Shield 🚀</button>
+            </div>
+
+            <script>
+                let stream = null;
+                let mediaRecorder = null;
+                let chunks = [];
+
+                async function startCamera() {
+                    try {
+                        const video = document.getElementById('camera-feed');
+                        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                        video.srcObject = stream;
+                    } catch (err) {
+                        alert("Camera/Audio access denied. You cannot proceed.");
+                    }
+                }
+
+                async function performVerification() {
+                    const btn = document.getElementById('verify-btn');
+                    const status = document.getElementById('status-msg');
+                    const statusBox = document.getElementById('status-box');
+
+                    btn.disabled = true;
+                    status.innerText = "Capturing Photo...";
+                    statusBox.style.background = "#fff8e1";
+
+                    // 1. Capture Photo
+                    const video = document.getElementById('camera-feed');
+                    const canvas = document.getElementById('photo-canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0);
+                    const photoData = canvas.toDataURL('image/jpeg');
+
+                    // 2. Start Video Recording (3 seconds)
+                    status.innerText = "Recording Verification Video (3s)...";
+                    document.getElementById('recording-indicator').style.display = 'block';
+
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        document.getElementById('recording-indicator').style.display = 'none';
+                        status.innerText = "Identity Verified Successfully!";
+                        statusBox.style.background = "#e8f5e9";
+                        statusBox.style.color = "var(--success)";
+
+                        btn.style.display = 'none';
+                        document.getElementById('launch-btn').style.display = 'block';
+
+                        // Upload to server (Real Integration)
+                        const videoBlob = new Blob(chunks, { type: 'video/webm' });
+                        const formData = new FormData();
+                        formData.append('photo', photoData);
+                        formData.append('video', videoBlob);
+
+                        fetch('/api/upload_identity', {
+                            method: 'POST',
+                            body: formData // Note: app.py handles JSON/Form
+                        }).then(r => console.log("Identity Uploaded"));
+
+                        console.log("Captured Data:", { photo: photoData.substring(0, 50) + "...", videoSize: chunks.length });
+                    };
+
+                    mediaRecorder.start();
+                    setTimeout(() => mediaRecorder.stop(), 3000);
+                }
+
+                function startExam() {
+                    const elem = document.documentElement;
+                    if (elem.requestFullscreen) elem.requestFullscreen();
+                    setTimeout(() => { window.location.href = "{{ url_for('quiz_interface') }}"; }, 500);
+                }
+
+                document.addEventListener('DOMContentLoaded', startCamera);
+            </script>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

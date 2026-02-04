@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Policy Engine - SIMAD oLearn</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="brand">SIMAD <span>oLearn</span></div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="/">🏛️ Exam Overview</a></li>
+            <li class="nav-item"><a href="/admin/policies" class="active">🛡️ Policy Engine</a></li>
+            <li class="nav-item"><a href="#">📅 Scheduling</a></li>
+            <li class="nav-item"><a href="/logout" style="color: var(--danger);">🚪 Sign Out</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <header>
+            <h1 class="section-title">Exam Shield Guard Policies</h1>
+            <button class="btn-primary" onclick="alert('Policy Creation logic pending...')">+ Create New Policy</button>
+        </header>
+
+        <div class="card" style="margin-top: 24px;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead style="text-align: left; background: #f8f9fa;">
+                    <tr>
+                        <th style="padding: 12px;">Policy Name</th>
+                        <th style="padding: 12px;">Version</th>
+                        <th style="padding: 12px;">Identity Tier</th>
+                        <th style="padding: 12px;">Secure Mode</th>
+                        <th style="padding: 12px;">Status</th>
+                        <th style="padding: 12px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for policy in policies %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 12px; font-weight: 500;">{{ policy.name }}</td>
+                        <td style="padding: 12px;">V{{ policy.version }}</td>
+                        <td style="padding: 12px;">Tier {{ policy.identity_tier }}</td>
+                        <td style="padding: 12px;">{{ 'REQUIRED' if policy.secure_mode else 'OPTIONAL' }}</td>
+                        <td style="padding: 12px;"><span class="badge badge-success">{{ policy.status }}</span></td>
+                        <td style="padding: 12px;">
+                            <a href="#" style="color: var(--simad-blue); margin-right: 12px;">Edit</a>
+                            <a href="#" style="color: #666;">Clone</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+
+</html>

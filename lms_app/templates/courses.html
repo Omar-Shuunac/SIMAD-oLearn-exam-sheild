@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}My Courses - SIMAD oLearn{% endblock %}
+
+{% block header_title %}Student Course Portfolio{% endblock %}
+
+{% block content %}
+<div class="courses-container"
+    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; margin-top: 20px;">
+    {% for enroll in enrollments %}
+    <div class="card course-card" style="height: auto; border: 1px solid #eee; transition: transform 0.2s ease;">
+        <div style="margin-bottom: 20px;">
+            <span class="course-tag" style="background: #f0f7ff; color: var(--simad-blue);">{{ enroll.course.code
+                }}</span>
+            <h3 style="font-size: 1.2rem; margin-top: 10px; line-height: 1.4;">{{ enroll.course.title }}</h3>
+            <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">Level: Undergraduate Degree</p>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+            <span class="badge badge-success">ACTIVE SEMESTER</span>
+            <span class="badge badge-secondary">GPA: {{ enroll.grade if enroll.grade else 'TBD' }}</span>
+        </div>
+
+        <div class="course-progress" style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px;">
+                <span style="font-weight: 500;">Learning Path Progress</span>
+                <span style="font-weight: 700;">{{ enroll.progress }}%</span>
+            </div>
+            <div class="progress-bar" style="height: 10px; background: #eee; border-radius: 50px;">
+                <div class="progress-fill"
+                    style="width: {{ enroll.progress }}%; height: 100%; background: var(--simad-blue); border-radius: 50px;">
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-primary" style="width: 100%; padding: 12px;"
+            onclick="window.location.href='/course-detail.html?id={{ enroll.course.id }}'">Enter Virtual
+            Classroom</button>
+    </div>
+    {% endfor %}
+
+    {% if not enrollments %}
+    <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 80px; border: 2px dashed #ddd;">
+        <div style="font-size: 3rem; margin-bottom: 20px;">📚</div>
+        <h3>No Enrolled Courses</h3>
+        <p style="color: #666;">You aren't active in any courses for the current semester.</p>
+        <button class="btn-primary" style="margin-top: 20px; background: var(--simad-blue);" disabled>Register for
+            Course</button>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

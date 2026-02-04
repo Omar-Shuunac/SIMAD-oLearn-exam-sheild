@@ -1,0 +1,42 @@
+# Implementation Plan - Deepen LMS Features
+
+This plan outlines the creation of "deep" pages to simulate the actual learning and assessment experience, moving beyond just high-level dashboards.
+
+## Goal Description
+Create the functional "inner" pages of the LMS where the actual learning happens: inside a course, taking a quiz, and submitting work.
+
+## User Review Required
+> [!NOTE]
+> I will continue using the Student Persona "Mohamed Osman" for consistency.
+
+## Proposed Changes
+
+I will create the following files in `ui_prototype/`:
+
+#### [NEW] ui_prototype/course-detail.html
+*   **Sidebar**: Updated to show course-specific context (Syllabus, Modules, Grades, People).
+*   **Module View**: Accordion list of Week 1, Week 2, etc.
+*   **Content Viewer**: Embedded video placeholder and download links.
+
+#### [NEW] ui_prototype/quiz-interface.html
+*   **Focus Mode**: Minimalist header (simulating the "Exam Shield" or a standard quiz).
+*   **Question Types**: Multiple choice, True/False.
+*   **Timer**: Visual countdown.
+*   **Sidebar**: Question navigator.
+
+#### [NEW] ui_prototype/assignment.html
+*   **Brief**: Instructions and rubric view.
+*   **Submission Box**: Drag-and-drop zone and text editor mock.
+
+#### [NEW] ui_prototype/settings.html
+*   **Profile**: Edit photo, change password.
+*   **Notifications**: Toggle Email/SMS alerts.
+
+### Updates
+#### [MODIFY] ui_prototype/styles.css
+*   Add styles for `accordion`, `quiz-options`, `submission-zone`, and `toggle-switch`.
+
+## Verification Plan
+### Manual Verification
+*   **Flow Check**: Go from Dashboard -> Courses -> Course Detail -> Assignment.
+*   **Quiz Check**: Verify the "launcher" from Exams page links to the Quiz Interface.

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - SIMAD oLearn</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Admin Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            SIMAD <span>oLearn</span>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="/" class="active">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                        </path>
+                    </svg>
+                    System Overview
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
+                    </svg>
+                    Manage Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z">
+                        </path>
+                    </svg>
+                    System Logs
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/logout" style="color: var(--danger);">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                        </path>
+                    </svg>
+                    Sign Out
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <header>
+            <h1 class="section-title">System Administration</h1>
+            <div class="user-profile">
+                <span style="font-weight: 500;">Admin</span>
+                <div class="avatar" style="background-color: var(--danger);">AD</div>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="left-col">
+                <div class="card">
+                    <h2>Add New User</h2>
+                    <form action="/admin/add_user" method="POST" style="margin-top: 16px;">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" name="name" class="form-control" placeholder="Enter name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" name="email" class="form-control" placeholder="user@simad.edu.so"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">System Role</label>
+                            <select name="role" class="form-control">
+                                <option value="student">Student</option>
+                                <option value="instructor">Instructor</option>
+                                <option value="admin">Administrator</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-primary" style="width: 100%;">Create User Account</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="right-col">
+                <div class="card">
+                    <h3 class="section-title" style="font-size: 1rem;">System Statistics</h3>
+                    <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Total Users</span>
+                            <strong>{{ stats.total_users }}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Active Courses</span>
+                            <strong>{{ stats.total_courses }}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Proctoring Flags</span>
+                            <strong style="color: var(--danger);">0</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 24px;">
+                    <h3 class="section-title" style="font-size: 1rem;">Recent Users</h3>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
+                        <thead>
+                            <tr style="text-align: left; border-bottom: 1px solid #eee;">
+                                <th style="padding: 8px;">Name</th>
+                                <th style="padding: 8px;">Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_users %}
+                            <tr style="border-bottom: 1px solid #f9f9f9;">
+                                <td style="padding: 8px; font-size: 0.9rem;">{{ user.name }}</td>
+                                <td style="padding: 8px;"><span class="badge badge-secondary"
+                                        style="font-size: 0.75rem;">{{ user.role }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</body>
+
+</html>

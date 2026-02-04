@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Provision Quiz - SIMAD oLearn{% endblock %}
+
+{% block header_title %}Identity Shield: Advanced Provisioning{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 1000px; margin: 0 auto; padding: 40px;">
+    <form action="/instructor/create_quiz" method="POST" id="quizForm">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+            <h2>Assessment Identity & Type</h2>
+            <span class="badge badge-success">SHIELD V2.0 ACTIVATED</span>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 24px;">
+            <label class="form-label">Assessment Title</label>
+            <input type="text" name="title" class="form-control" placeholder="e.g. Midterm: Cryptography & Security"
+                required>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid #eee; margin: 32px 0;">
+
+        <h3>Item Definition</h3>
+        <div class="form-group" style="margin-top: 20px;">
+            <label class="form-label">Question Text</label>
+            <textarea name="question_text" class="form-control" rows="3" placeholder="Enter your prompt here..."
+                required></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+            <div class="form-group">
+                <label class="form-label">Question Type</label>
+                <select name="q_type" id="qTypeSelect" class="form-control" onchange="toggleTypeUI()">
+                    <option value="multiple_choice">Multiple Choice (Single Answer)</option>
+                    <option value="short_answer">Short Answer (Manual Grading)</option>
+                    <option value="matching">Matching Pairs (Identity Check)</option>
+                    <option value="drag_drop">Sequence / Drag & Drop</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Weight (Points)</label>
+                <input type="number" name="points" class="form-control" value="10">
+            </div>
+        </div>
+
+        <!-- Dynamic Type Config UI -->
+        <div id="mcq-config" class="type-config"
+            style="margin-top: 30px; padding: 24px; background: #fafafa; border-radius: 8px;">
+            <p style="font-weight: 600; margin-bottom: 16px;">Define Choices</p>
+            <div id="choices-list" style="display: grid; gap: 10px;">
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" name="choice_1" class="form-control" placeholder="Option A (Correct)"
+                        style="flex: 1;">
+                    <input type="checkbox" checked onclick="return false;"> Correct
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" name="choice_2" class="form-control" placeholder="Option B" style="flex: 1;">
+                    <input type="checkbox" onclick="return false;">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" name="choice_3" class="form-control" placeholder="Option C" style="flex: 1;">
+                    <input type="checkbox" onclick="return false;">
+                </div>
+            </div>
+        </div>
+
+        <div id="matching-config" class="type-config"
+            style="display: none; margin-top: 30px; padding: 24px; background: #f0f7ff; border-radius: 8px;">
+            <p style="font-weight: 600; margin-bottom: 16px;">Define Matching Pairs</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <input type="text" class="form-control" placeholder="Term (e.g. RSA)">
+                <input type="text" class="form-control" placeholder="Match (e.g. Asymmetric)">
+                <input type="text" class="form-control" placeholder="Term (e.g. AES)">
+                <input type="text" class="form-control" placeholder="Match (e.g. Symmetric)">
+            </div>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 10px;">Note: Matching configuration is stored as
+                structured JSON in Neon.</p>
+        </div>
+
+        <div id="short-answer-config" class="type-config"
+            style="display: none; margin-top: 30px; padding: 24px; background: #fffbe6; border-radius: 8px;">
+            <p style="font-weight: 600; margin-bottom: 16px;">Short Answer Guidelines</p>
+            <input type="text" class="form-control" placeholder="System keywords (optional, comma separated)">
+            <p style="font-size: 0.8rem; color: #856404; margin-top: 10px;">System will capture rich text and log focus
+                loss during typing.</p>
+        </div>
+
+        <div style="margin-top: 40px; display: flex; gap: 20px;">
+            <button type="button" class="btn-primary" style="background: #eee; color: #333;"
+                onclick="history.back()">Discard Changes</button>
+            <button type="submit" class="btn-primary" style="flex: 1; background: var(--simad-blue);">Activate
+                Assessment 🛡️</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function toggleTypeUI() {
+        const selected = document.getElementById('qTypeSelect').value;
+        document.querySelectorAll('.type-config').forEach(el => el.style.display = 'none');
+
+        if (selected === 'multiple_choice') {
+            document.getElementById('mcq-config').style.display = 'block';
+        } else if (selected === 'matching') {
+            document.getElementById('matching-config').style.display = 'block';
+        } else if (selected === 'short_answer') {
+            document.getElementById('short-answer-config').style.display = 'block';
+        }
+    }
+</script>
+{% endblock %}

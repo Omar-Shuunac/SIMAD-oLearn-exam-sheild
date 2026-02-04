@@ -1,0 +1,34 @@
+# Implementation Plan - Exam Shield Workflow
+
+This plan outlines the creation of the **Exam Shield** pre-exam security sequence. This is critical for the "High Stakes" aspect of the platform.
+
+## Goal Description
+Create a step-by-step "Landing Sequence" that a student must pass before entering the `quiz-interface.html`.
+
+## User Review Required
+> [!IMPORTANT]
+> This workflow simulates the "Lockdown" process. It will visually demonstrate system checks and identity verification.
+
+## Proposed Changes
+
+I will create the following files in `ui_prototype/`:
+
+#### [NEW] ui_prototype/shield-check.html
+*   **System Diagnostics**: Animated checks for Webcam, Mic, Internet, and Browser Security.
+*   **Action**: "Proceed" button only active after all checks pass.
+
+#### [NEW] ui_prototype/shield-verify.html
+*   **Camera Feed Mock**: A placeholder showing the user's "camera".
+*   **Instructions**: "Center your face", "Hold up your ID".
+*   **Action**: "Start Exam" (transitions to `quiz-interface.html` in fullscreen mode concept).
+
+### Updates
+#### [MODIFY] ui_prototype/exams.html
+*   Update the "Start" link to point to `shield-check.html` instead of directly to `quiz-interface.html`.
+
+#### [MODIFY] ui_prototype/styles.css
+*   Add styles for `check-list`, `camera-box`, and `step-indicator`.
+
+## Verification Plan
+### Manual Verification
+*   **Flow Check**: Exams -> Shield Check -> Shield Verify -> Quiz Interface.

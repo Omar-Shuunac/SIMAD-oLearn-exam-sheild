@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMAD Exam Shield - Multi-Type Session</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='security.js') }}"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #fdfdfd;
+        }
+
+        .secure-header {
+            background: #fff;
+            border-bottom: 2px solid var(--danger);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .question-card {
+            display: none;
+            padding: 40px;
+            max-width: 850px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid #eee;
+        }
+
+        .question-card.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .mcq-option {
+            display: block;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mcq-option:hover {
+            background: #f9f9f9;
+            border-color: var(--simad-blue);
+        }
+
+        .mcq-option.selected {
+            border-color: var(--simad-blue);
+            background: #f0f7ff;
+        }
+
+        .matching-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        #timer {
+            font-family: monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--danger);
+            background: #fff5f5;
+            padding: 5px 15px;
+            border-radius: 50px;
+            border: 1px solid #feb2b2;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="secure-header">
+        <div class="brand" style="margin: 0; font-size: 1.2rem;">🛡️ SHIELD <span
+                style="color: var(--danger);">SESSION</span></div>
+        <div id="timer">60:00</div>
+        <div style="font-size: 0.85rem; font-weight: 600; color: #555;">SECURITY ACTIVE ● {{ session.user_name }}</div>
+    </div>
+
+    <main style="padding-bottom: 100px;">
+        {% for q in questions %}
+        <div class="question-card {{ 'active' if loop.first else '' }}" id="q{{ loop.index }}">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <span class="badge badge-secondary">Item {{ loop.index }} of {{ questions|length }}</span>
+                <span style="font-weight: 600; color: var(--simad-blue);">{{ q.points }} MARKS</span>
+            </div>
+
+            <h2 style="font-size: 1.4rem; line-height: 1.5; margin-bottom: 30px;">{{ q.text }}</h2>
+
+            <!-- Type-Specific Rendering -->
+            {% if q.q_type == 'multiple_choice' %}
+            <div class="options-container">
+                {% for choice in q.choices %}
+                <label class="mcq-option" onclick="selectMCQ(this)">
+                    <input type="radio" name="q{{ q.id }}" style="margin-right: 12px;">
+                    {{ choice.text }}
+                </label>
+                {% endfor %}
+            </div>
+            {% elif q.q_type == 'short_answer' %}
+            <textarea class="form-control" rows="8" placeholder="Type your academic response here..."
+                style="width: 100%; padding: 15px; border-radius: 8px; border: 1px solid #ddd;"></textarea>
+            {% elif q.q_type == 'matching' %}
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 10px;">
+                <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Connect terms on the left to candidates
+                    on the right.</p>
+                <div class="matching-row">
+                    <div style="flex: 1; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 4px;">
+                        Asymmetric Cryptography</div>
+                    <span>➔</span>
+                    <select class="form-control" style="flex: 1;">
+                        <option>Select Match...</option>
+                        <option>RSA</option>
+                        <option>AES</option>
+                    </select>
+                </div>
+                <div class="matching-row">
+                    <div style="flex: 1; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 4px;">
+                        Symmetric Cryptography</div>
+                    <span>➔</span>
+                    <select class="form-control" style="flex: 1;">
+                        <option>Select Match...</option>
+                        <option>RSA</option>
+                        <option>AES</option>
+                    </select>
+                </div>
+            </div>
+            {% elif q.q_type == 'drag_drop' %}
+            <div
+                style="border: 2px dashed #ddd; padding: 40px; text-align: center; border-radius: 12px; background: #fafafa;">
+                <p>Drag items to rank security priority:</p>
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                    <div
+                        style="padding: 10px 20px; background: white; border: 1px solid #eee; box-shadow: var(--shadow-sm); cursor: grab;">
+                        Encryption</div>
+                    <div
+                        style="padding: 10px 20px; background: white; border: 1px solid #eee; box-shadow: var(--shadow-sm); cursor: grab;">
+                        Hashing</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        {% if not questions %}
+        <div class="card" style="text-align: center; padding: 80px; max-width: 600px; margin: 60px auto;">
+            <h3>Session Empty</h3>
+            <p>Wait for instructor to publish items.</p>
+            <button class="btn-primary" onclick="window.location.href='/index.html'">Back to oLearn</button>
+        </div>
+        {% endif %}
+    </main>
+
+    <div
+        style="position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #eee; padding: 20px; display: flex; justify-content: center; gap: 20px; box-shadow: 0 -5px 15px rgba(0,0,0,0.05);">
+        <button class="btn-primary" id="prevBtn" style="background: #eee; color: #333;" onclick="prevQuestion()"
+            disabled>&larr; Back</button>
+        <div
+            style="width: 200px; background: #eee; height: 8px; border-radius: 10px; align-self: center; overflow: hidden;">
+            <div id="progressFill"
+                style="width: {{ (1 / questions|length * 100) if questions else 0 }}%; height: 100%; background: var(--simad-blue); transition: width 0.3s ease;">
+            </div>
+        </div>
+        <button class="btn-primary" id="nextBtn" onclick="nextQuestion()">Next Item &rarr;</button>
+        <button class="btn-primary" id="submitBtn" onclick="submitExam()"
+            style="display: none; background: var(--success);">Confirm Submission</button>
+    </div>
+
+    <script>
+        let currentIdx = 1;
+        const total = {{ questions| length }};
+
+        function selectMCQ(el) {
+            const container = el.parentElement;
+            container.querySelectorAll('.mcq-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+            el.querySelector('input').checked = true;
+        }
+
+        function showQuestion(n) {
+            document.querySelectorAll('.question-card').forEach(q => q.classList.remove('active'));
+            const target = document.getElementById(`q${n}`);
+            if (target) target.classList.add('active');
+
+            document.getElementById('prevBtn').disabled = (n === 1);
+            if (n === total) {
+                document.getElementById('nextBtn').style.display = 'none';
+                document.getElementById('submitBtn').style.display = 'block';
+            } else {
+                document.getElementById('nextBtn').style.display = 'block';
+                document.getElementById('submitBtn').style.display = 'none';
+            }
+            document.getElementById('progressFill').style.width = (n / total * 100) + '%';
+        }
+
+        function nextQuestion() { if (currentIdx < total) { currentIdx++; showQuestion(currentIdx); } }
+        function prevQuestion() { if (currentIdx > 1) { currentIdx--; showQuestion(currentIdx); } }
+
+        function submitExam() {
+            if (confirm("Submit Assessment?")) window.location.href = "{{ url_for('dashboard') }}";
+        }
+
+        let timeLeft = 60 * 60;
+        setInterval(() => {
+            if (timeLeft <= 0) return;
+            timeLeft--;
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            document.getElementById('timer').innerText = `${m}:${s.toString().padStart(2, '0')}`;
+        }, 1000);
+    </script>
+</body>
+
+</html>

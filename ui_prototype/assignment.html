@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment: Shard Keys - SIMAD oLearn</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="brand">
+            SIMAD <span>oLearn</span>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="index.html">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                        </path>
+                    </svg>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="courses.html" class="active">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                        </path>
+                    </svg>
+                    My Courses
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <header>
+            <div>
+                <a href="course-detail.html"
+                    style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">&larr; Back to Module
+                    2</a>
+                <h1 class="section-title" style="margin-top: 8px;">Assignment: Designing Shard Keys</h1>
+            </div>
+            <div class="user-profile">
+                <span style="font-weight: 500;">Mohamed Osman</span>
+                <div class="avatar">MO</div>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="left-col">
+                <div class="card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 24px;">
+                        <div>
+                            <h2 style="font-size: 1.2rem; margin-bottom: 4px;">Instructions</h2>
+                            <p style="color: #666; font-size: 0.9rem;">Due Date: Feb 10, 2026 at 11:59 PM</p>
+                        </div>
+                        <span class="badge badge-warning">20 Points</span>
+                    </div>
+
+                    <div style="line-height: 1.6; color: var(--text-dark); margin-bottom: 32px;">
+                        <p style="margin-bottom: 16px;">
+                            For this assignment, you need to design a Sharding Strategy for a hypothetical E-commerce
+                            application that handles 1 million orders per day.
+                        </p>
+                        <p style="margin-bottom: 16px;">
+                            <strong>Requirements:</strong>
+                        </p>
+                        <ul style="padding-left: 20px; list-style-type: disc;">
+                            <li>Identify the best Shard Key (e.g., OrderID, CustomerID, or Region).</li>
+                            <li>Explain why you chose it (Cardinality, Write Distribution).</li>
+                            <li>Discuss one potential downside of your choice.</li>
+                        </ul>
+                        <p>Submit your answer as a PDF document.</p>
+                    </div>
+
+                    <h3 style="font-size: 1rem; margin-bottom: 16px;">Submission</h3>
+                    <div class="upload-zone">
+                        <svg width="40" height="40" fill="none" stroke="#ccc" viewBox="0 0 24 24"
+                            style="margin-bottom: 8px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                            </path>
+                        </svg>
+                        <p style="font-weight: 500; color: var(--text-dark);">Drag and drop your PDF here</p>
+                        <p style="font-size: 0.85rem;">or click to browse files</p>
+                    </div>
+
+                    <button class="btn-primary" style="width: 100%;">Submit Assignment</button>
+
+                </div>
+            </div>
+
+            <div class="right-col">
+                <div class="card">
+                    <h3 class="section-title" style="font-size: 1rem;">Rubric</h3>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <div style="padding-bottom: 12px; border-bottom: 1px solid #eee;">
+                            <div
+                                style="display: flex; justify-content: space-between; font-weight: 500; font-size: 0.9rem;">
+                                <span>Shard Key Selection</span>
+                                <span>5 pts</span>
+                            </div>
+                            <p style="font-size: 0.8rem; color: #666; margin-top: 4px;">Choice is valid and justifiable.
+                            </p>
+                        </div>
+                        <div style="padding-bottom: 12px; border-bottom: 1px solid #eee;">
+                            <div
+                                style="display: flex; justify-content: space-between; font-weight: 500; font-size: 0.9rem;">
+                                <span>Justification</span>
+                                <span>10 pts</span>
+                            </div>
+                            <p style="font-size: 0.8rem; color: #666; margin-top: 4px;">Detailed explanation of
+                                cardinality.</p>
+                        </div>
+                        <div>
+                            <div
+                                style="display: flex; justify-content: space-between; font-weight: 500; font-size: 0.9rem;">
+                                <span>Critical Analysis</span>
+                                <span>5 pts</span>
+                            </div>
+                            <p style="font-size: 0.8rem; color: #666; margin-top: 4px;">Correct identification of
+                                downsides.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</body>
+
+</html>

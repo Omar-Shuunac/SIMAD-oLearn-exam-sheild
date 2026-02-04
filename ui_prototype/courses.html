@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMAD oLearn - My Courses</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="brand">
+            SIMAD <span>oLearn</span>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="index.html">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                        </path>
+                    </svg>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="courses.html" class="active">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                        </path>
+                    </svg>
+                    My Courses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="exams.html">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Exams
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="calendar.html">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    Calendar
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="support.html">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
+                    </svg>
+                    Support
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <header>
+            <h1 class="section-title">My Courses</h1>
+            <div class="user-profile">
+                <span style="font-weight: 500;">Mohamed Osman</span>
+                <div class="avatar">MO</div>
+            </div>
+        </header>
+
+        <div class="tabs">
+            <div class="tab active">Active Semester</div>
+            <div class="tab">Completed</div>
+            <div class="tab">Archived</div>
+        </div>
+
+        <div class="courses-container" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+
+            <!-- Course 1 -->
+            <div class="card course-card" style="height: auto;">
+                <div style="margin-bottom: 12px;">
+                    <span class="course-tag">Computer Science</span>
+                    <h3 style="font-size: 1.1rem; margin-top: 4px;">Web Application Development</h3>
+                    <p style="font-size: 0.9rem; color: #666;">CS-204 • Prof. Hassan</p>
+                </div>
+                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                    <span class="badge badge-success">On Track</span>
+                    <span class="badge badge-secondary">4 Credits</span>
+                </div>
+                <div class="course-progress" style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                        <span>Completion</span>
+                        <span>75%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 75%;"></div>
+                    </div>
+                </div>
+                <button class="btn-primary" style="width: 100%;">Go to Course</button>
+            </div>
+
+            <!-- Course 2 -->
+            <div class="card course-card" style="height: auto;">
+                <div style="margin-bottom: 12px;">
+                    <span class="course-tag">Management</span>
+                    <h3 style="font-size: 1.1rem; margin-top: 4px;">Business Ethics</h3>
+                    <p style="font-size: 0.9rem; color: #666;">MGT-101 • Dr. Lul</p>
+                </div>
+                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                    <span class="badge badge-warning">Behind Schedule</span>
+                    <span class="badge badge-secondary">3 Credits</span>
+                </div>
+                <div class="course-progress" style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                        <span>Completion</span>
+                        <span>40%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 40%; background-color: var(--warning);"></div>
+                    </div>
+                </div>
+                <button class="btn-primary" style="width: 100%;">Go to Course</button>
+            </div>
+
+            <!-- Course 3 -->
+            <div class="card course-card" style="height: auto;">
+                <div style="margin-bottom: 12px;">
+                    <span class="course-tag">Computer Science</span>
+                    <h3 style="font-size: 1.1rem; margin-top: 4px;">Data Structures & Algorithms</h3>
+                    <p style="font-size: 0.9rem; color: #666;">CS-201 • Prof. Ali</p>
+                </div>
+                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                    <span class="badge badge-success">High Distinction</span>
+                    <span class="badge badge-secondary">4 Credits</span>
+                </div>
+                <div class="course-progress" style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                        <span>Completion</span>
+                        <span>90%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 90%;"></div>
+                    </div>
+                </div>
+                <button class="btn-primary" style="width: 100%;">Go to Course</button>
+            </div>
+
+            <!-- Course 4 -->
+            <div class="card course-card" style="height: auto;">
+                <div style="margin-bottom: 12px;">
+                    <span class="course-tag">General Ed</span>
+                    <h3 style="font-size: 1.1rem; margin-top: 4px;">Academic Writing</h3>
+                    <p style="font-size: 0.9rem; color: #666;">ENG-102 • Sarah Smith</p>
+                </div>
+                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                    <span class="badge badge-success">Completed</span>
+                    <span class="badge badge-secondary">3 Credits</span>
+                </div>
+                <div class="course-progress" style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                        <span>Completion</span>
+                        <span>100%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <button class="btn-primary" style="width: 100%; background-color: #6c757d;">View Grades</button>
+            </div>
+
+        </div>
+    </main>
+</body>
+
+</html>

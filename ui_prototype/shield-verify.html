@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identity Verification - Exam Shield</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body style="display: block; background-color: #f0f2f5;">
+
+    <div class="shield-container">
+
+        <div class="brand" style="justify-content: center; margin-bottom: 24px;">
+            SIMAD <span>Exam Shield</span>
+        </div>
+
+        <div class="card">
+            <h1 style="font-size: 1.5rem; margin-bottom: 8px;">Identity Verification</h1>
+            <p style="color: #666; margin-bottom: 24px;">Please center your face in the frame.</p>
+
+            <div class="step-indicator">
+                <div class="step-dot"></div>
+                <div class="step-dot active"></div>
+                <div class="step-dot"></div>
+            </div>
+
+            <div class="camera-box">
+                <div class="face-guide"></div>
+                <span>[ Camera Feed Active ]</span>
+            </div>
+
+            <div
+                style="background: #eef7ff; padding: 12px; border-radius: 6px; margin-bottom: 24px; text-align: left; font-size: 0.9rem; color: var(--simad-blue);">
+                <strong>Note:</strong> Your session will be recorded. By proceeding, you agree to the <a href="#">Exam
+                    Integrity Policy</a>.
+            </div>
+
+            <div style="display: flex; gap: 16px;">
+                <button class="btn-primary" style="flex: 1; background: white; color: #333; border: 1px solid #ddd;"
+                    onclick="history.back()">Back</button>
+                <button class="btn-primary" style="flex: 2; background-color: var(--danger);"
+                    onclick="window.location.href='quiz-interface.html'">Launch Exam Shield 🚀</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

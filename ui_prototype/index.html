@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMAD oLearn - Student Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="brand">
+            SIMAD <span>oLearn</span>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="active">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                        </path>
+                    </svg>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                        </path>
+                    </svg>
+                    My Courses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Exams
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    Calendar
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
+                    </svg>
+                    Support
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Top Header -->
+        <header>
+            <div class="search-bar">
+                <!-- Placeholder for Search -->
+            </div>
+            <div class="user-profile" onclick="window.location.href='settings.html'" style="cursor: pointer;">
+                <span style="font-weight: 500;">Mohamed Osman</span>
+                <div class="avatar">MO</div>
+            </div>
+        </header>
+
+        <!-- Dashboard Widgets -->
+        <div class="dashboard-grid">
+
+            <!-- Left Column: Primary Actions -->
+            <div class="left-col">
+
+                <!-- Welcome Banner -->
+                <div class="card welcome-card">
+                    <h1>Good Morning, Mohamed! 👋</h1>
+                    <p>You have 2 pending assignments and 1 upcoming exam this week.</p>
+                </div>
+
+                <!-- Exam Shield Launcher (High Priority) -->
+                <div class="card exam-shield-card">
+                    <div class="exam-info">
+                        <div class="exam-status">
+                            <h3>Midterm: Advanced Database Systems</h3>
+                            <span class="status-badge">Starts in 15m</span>
+                        </div>
+                        <p style="color: var(--text-muted); margin-top: 4px;">CS-302 • Prof. Hassan • Secure Browser
+                            Required</p>
+                    </div>
+                    <button class="btn-primary btn-secure" onclick="window.location.href='shield-check.html'">Launch
+                        Exam Shield 🛡️</button>
+                </div>
+
+                <!-- Active Courses Grid -->
+                <h2 class="section-title">Current Semester</h2>
+                <div class="courses-container">
+                    <!-- Course 1 -->
+                    <div class="card course-card">
+                        <div>
+                            <span class="course-tag">Computer Science</span>
+                            <h3>Web Application Dev</h3>
+                            <p style="font-size: 0.9rem; color: #666;">CS-204</p>
+                        </div>
+                        <div class="course-progress">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                                <span>Progress</span>
+                                <span>75%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 75%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Course 2 -->
+                    <div class="card course-card">
+                        <div>
+                            <span class="course-tag">Business</span>
+                            <h3>Business Ethics</h3>
+                            <p style="font-size: 0.9rem; color: #666;">MGT-101</p>
+                        </div>
+                        <div class="course-progress">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                                <span>Progress</span>
+                                <span>40%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 40%; background-color: var(--warning);"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Course 3 -->
+                    <div class="card course-card">
+                        <div>
+                            <span class="course-tag">Computer Science</span>
+                            <h3>Data Structures</h3>
+                            <p style="font-size: 0.9rem; color: #666;">CS-201</p>
+                        </div>
+                        <div class="course-progress">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                                <span>Progress</span>
+                                <span>90%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 90%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Sidebar Widgets -->
+            <div class="right-col">
+                <div class="card">
+                    <h3 class="section-title" style="font-size: 1rem;">Upcoming Deadlines</h3>
+
+                    <div class="timeline-item">
+                        <div class="date-box">
+                            <div>FEB</div>
+                            <div style="font-size: 1.2rem;">05</div>
+                        </div>
+                        <div class="event-details">
+                            <h4>Project Proposal</h4>
+                            <p>Web Application Dev</p>
+                            <span style="font-size: 0.75rem; color: var(--danger);">Due Tomorrow</span>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item" style="border: none;">
+                        <div class="date-box">
+                            <div>FEB</div>
+                            <div style="font-size: 1.2rem;">08</div>
+                        </div>
+                        <div class="event-details">
+                            <h4>Case Study Analysis</h4>
+                            <p>Business Ethics</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="section-title" style="font-size: 1rem;">System Status</h3>
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+                        <div style="width: 10px; height: 10px; background: var(--success); border-radius: 50%;"></div>
+                        <span>LMS Services: Operational</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; margin-top: 8px;">
+                        <div style="width: 10px; height: 10px; background: var(--success); border-radius: 50%;"></div>
+                        <span>Exam Shield: Ready</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+
+</html>

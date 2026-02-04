@@ -1,0 +1,40 @@
+# SIMAD oLearn Design Tasks
+
+- [x] **Initialize Design Project** <!-- id: 0 -->
+    - [x] Create implementation plan for design Structure
+    - [x] Create initial file structure for deliverables
+- [x] **Phase 1: Product Definition (PRD)** <!-- id: 1 -->
+    - [x] Define Vision, Goals, and Target Users
+    - [x] Detail Functional & Non-Functional Requirements
+    - [x] Define User Personas & Use Cases
+- [x] **Phase 2: Core Feature Scope** <!-- id: 2 -->
+    - [x] Design Learning Delivery (LMS Core) specs
+    - [x] Design Assessment & Evaluation specs
+    - [x] Design Secure High-Stakes Exam (Exam Shield) specs
+    - [x] Design Student Services & Analytics specs
+- [x] **Phase 3: Operational Framework** <!-- id: 3 -->
+    - [x] Define Roles & Permission Matrix
+    - [x] Map End-to-End Work Processes (Course, Assessment, Exam, Misconduct, Support)
+- [x] **Phase 4: Technical & Security Architecture** <!-- id: 4 -->
+    - [x] Draft High-Level System Architecture
+    - [x] Define Security, Privacy & Compliance standards
+- [x] **Phase 5: Roadmap & Final Delivery** <!-- id: 5 -->
+    - [x] Create Phased Roadmap (MVP, V1, V2)
+    - [x] Review against constraints (Branding, Originality, Integrity)
+    - [x] Finalize SIMAD oLearn Design Package
+- [x] **Phase 6: UI Prototype** <!-- id: 6 -->
+    - [x] Create HTML structure for Student Dashboard
+    - [x] Create CSS for branding and layout
+    - [x] Implement responsive design and accessibility features
+- [x] **Phase 7: Expand UI Prototype** <!-- id: 7 -->
+    - [x] Create Courses page ([courses.html](file:///Users/drshuunac/.gemini/antigravity/brain/133fe670-3110-434e-87dc-8bb99d00a8da/ui_prototype/courses.html))
+    - [x] Create Exams page ([exams.html](file:///Users/drshuunac/.gemini/antigravity/brain/133fe670-3110-434e-87dc-8bb99d00a8da/ui_prototype/exams.html))
+    - [x] Create Calendar page ([calendar.html](file:///Users/drshuunac/.gemini/antigravity/brain/133fe670-3110-434e-87dc-8bb99d00a8da/ui_prototype/calendar.html))
+    - [x] Create Support page ([support.html](file:///Users/drshuunac/.gemini/antigravity/brain/133fe670-3110-434e-87dc-8bb99d00a8da/ui_prototype/support.html))
+    - [x] Update navigation and link all pages
+- [/] **Phase 8: Deepen LMS Features** <!-- id: 8 -->
+    - [/] Create Course Detail view (`course-detail.html`) with modules
+    - [/] Create Quiz Interface (`quiz-interface.html`)
+    - [/] Create Assignment Submission view (`assignment.html`)
+    - [/] Create Settings/Profile page (`settings.html`)
+    - [/] Link new pages to the existing flow

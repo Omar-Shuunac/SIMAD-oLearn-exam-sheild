@@ -1,0 +1,47 @@
+# Implementation Plan - Expand UI Prototype
+
+This plan outlines the creation of the remaining sections of the SIMAD oLearn Student Dashboard to provide a complete interactive prototype.
+
+## Goal Description
+Build fully functional HTML/CSS pages for the sidebar navigation items: **Courses**, **Exams**, **Calendar**, and **Support**. Connect them all via the existing sidebar for a seamless browsing experience.
+
+## User Review Required
+> [!NOTE]
+> I will use the existing [styles.css](file:///Users/drshuunac/.gemini/antigravity/brain/133fe670-3110-434e-87dc-8bb99d00a8da/ui_prototype/styles.css) as the base, adding new specific classes for the calendar grid and complex tables as needed.
+
+## Proposed Changes
+
+### 1. New Pages
+I will create the following files in `ui_prototype/`:
+
+#### [NEW] ui_prototype/courses.html
+*   **Grid View**: Expanded view of all enrolled courses.
+*   **Course Details**: Progress bar, Grade to date, "Access" button.
+*   **Tabs**: Active, Completed, Archived.
+
+#### [NEW] ui_prototype/exams.html
+*   **Table View**: List of upcoming and past exams.
+*   **Status Indicators**: "Open", "Upcoming", "Closed".
+*   **Action**: "Launch" button for active exams (links to Exam Shield mock logic).
+
+#### [NEW] ui_prototype/calendar.html
+*   **Grid**: Standard monthly view.
+*   **Events**: Color-coded dots for Assignments (Blue), Exams (Red), Live Classes (Green).
+
+#### [NEW] ui_prototype/support.html
+*   **FAQ Section**: Accordion style.
+*   **Ticket Form**: Input fields for Issue Type, Description, Attachment.
+*   **History**: List of past tickets.
+
+### 2. Updates
+#### [MODIFY] ui_prototype/styles.css
+*   Add styles for `table`, `tabs`, `calendar-grid`, and `form-elements`.
+
+#### [MODIFY] ui_prototype/index.html & All Pages
+*   Update sidebar `href` attributes to point to the correct HTML files.
+*   Ensure the "Active" class works on the correct sidebar item for each page.
+
+## Verification Plan
+### Manual Verification
+*   **Navigation Check**: Click through every sidebar link in the browser loop (`localhost:8000`) to ensure no broken links.
+*   **Visual Consistency**: Ensure headers, sidebars, and fonts match across all pages.

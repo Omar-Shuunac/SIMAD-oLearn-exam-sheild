@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% set active_page = 'dashboard' %}
+
+{% block title %}System Control - SIMAD oLearn{% endblock %}
+
+{% block header_title %}Platform Administration{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <div class="left-col">
+        <div class="card">
+            <h2>Administrative IAM Control</h2>
+            <form action="/admin/add_user" method="POST" style="margin-top: 16px; display: grid; gap: 12px;">
+                <input type="text" name="name" class="form-control" placeholder="Full Name" required>
+                <input type="email" name="email" class="form-control" placeholder="admin.email@simad.edu.so" required>
+                <input type="password" name="password" class="form-control" placeholder="Password" required>
+                <select name="role" class="form-control">
+                    <option value="sys_admin">System Admin</option>
+                    <option value="exam_admin">Exam Officer</option>
+                    <option value="instructor">Professor</option>
+                    <option value="student">Student Account</option>
+                </select>
+                <button type="submit" class="btn-primary">Provision Identity</button>
+            </form>
+        </div>
+
+        <div class="card" style="margin-top: 24px;">
+            <h2>Global Audit Trail</h2>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.85rem;">
+                <thead>
+                    <tr style="text-align: left; background: #f9f9f9;">
+                        <th style="padding: 10px;">Action</th>
+                        <th style="padding: 10px;">User</th>
+                        <th style="padding: 10px;">Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in stats.audit_logs %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;">{{ log.action }}</td>
+                        <td style="padding: 10px;">ID: {{ log.user_id }}</td>
+                        <td style="padding: 10px; color: #777;">{{ log.timestamp.strftime('%H:%M:%S') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <div class="card">
+            <h3>Infrastructure Status</h3>
+            <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Database</span>
+                    <span class="badge badge-success">STABLE (Neon)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>API Response</span>
+                    <span style="font-weight: 600;">14ms</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

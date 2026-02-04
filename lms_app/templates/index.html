@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% set active_page = 'dashboard' %}
+
+{% block title %}Student Dashboard - SIMAD oLearn{% endblock %}
+
+{% block header_title %}Student Overview{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <div class="left-col">
+        <div class="card welcome-card">
+            <h1>Good Day, {{ session.user_name.split(' ')[0] }}! 👋</h1>
+            <p>Welcome back to SIMAD oLearn. You have {{ enrollments|length }} active courses this semester.</p>
+        </div>
+
+        {% if enrollments %}
+        <div class="card exam-shield-card">
+            <div class="exam-info">
+                <div class="exam-status">
+                    <h3>Active Exam: Final Assessment</h3>
+                    <span class="status-badge" style="background-color: var(--success);">AVAILABLE NOW</span>
+                </div>
+                <p style="color: var(--text-muted); margin-top: 4px;">{{ enrollments[0].course.code }} • Secure Exam
+                    Shield Required</p>
+            </div>
+            <button class="btn-primary btn-secure" onclick="window.location.href='shield-check.html'">Launch Exam Shield
+                🛡️</button>
+        </div>
+        {% endif %}
+
+        <h2 class="section-title">Enrolled Courses</h2>
+        <div class="courses-container">
+            {% for enroll in enrollments %}
+            <div class="card course-card" onclick="window.location.href='/course-detail.html?id={{ enroll.course.id }}'"
+                style="cursor: pointer;">
+                <div>
+                    <span class="course-tag">{{ enroll.course.code }}</span>
+                    <h3>{{ enroll.course.title }}</h3>
+                </div>
+                <div class="course-progress">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                        <span>Current Grade</span>
+                        <span>{{ enroll.grade if enroll.grade else 'TBD' }}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ enroll.progress }}%;"></div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if not enrollments %}
+            <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                <p style="color: #666;">You are not enrolled in any courses yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="right-col">
+        <div class="card">
+            <h3 class="section-title" style="font-size: 1rem;">System Integrity</h3>
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="color: var(--success);">✔</span>
+                    <span style="font-size: 0.9rem;">Identity Verified</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="color: var(--simad-blue);">●</span>
+                    <span style="font-size: 0.9rem;">Exam Shield: Active</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

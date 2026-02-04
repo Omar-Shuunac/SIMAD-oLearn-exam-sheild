@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Integrity Review - SIMAD oLearn{% endblock %}
+
+{% block header_title %}Academic Integrity Desk{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 24px;">
+    <h2>Identity Verification Queue</h2>
+    <p style="color: #666; font-size: 0.85rem; margin-bottom: 20px;">Review captured snapshots and verification clips.
+    </p>
+
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="text-align: left; background: #f8f9fa;">
+                <th style="padding: 12px;">Candidate</th>
+                <th style="padding: 12px;">Timestamp</th>
+                <th style="padding: 12px;">Evidence Snapshot</th>
+                <th style="padding: 12px;">Video Link</th>
+                <th style="padding: 12px;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in verifications %}
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 12px;">
+                    <strong>{{ v.student.name }}</strong><br>
+                    <span style="font-size: 0.75rem; color: #999;">{{ v.student.email }}</span>
+                </td>
+                <td style="padding: 12px; font-size: 0.85rem;">{{ v.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td style="padding: 12px;">
+                    <!-- Real implementation would serve the image file -->
+                    <div
+                        style="width: 80px; height: 50px; background: #ddd; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #666; overflow: hidden;">
+                        {% if v.photo_url %}Snapshot OK{% else %}NO IMAGE{% endif %}
+                    </div>
+                </td>
+                <td style="padding: 12px;">
+                    <a href="#" style="font-size: 0.85rem; color: var(--simad-blue);">View 3s Clip</a>
+                </td>
+                <td style="padding: 12px;">
+                    <span class="badge badge-success">{{ v.status | upper }}</span>
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not verifications %}
+            <tr>
+                <td colspan="5" style="padding: 40px; text-align: center; color: #666;">No identity records found.</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Proctoring Violations (Shield Logs)</h2>
+    <p style="color: #666; font-size: 0.85rem; margin-bottom: 20px;">Automated flags from focus loss or app switching.
+    </p>
+
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead style="text-align: left; background: #fff5f5;">
+            <tr>
+                <th style="padding: 12px;">Event Type</th>
+                <th style="padding: 12px;">Attempt ID</th>
+                <th style="padding: 12px;">Severity</th>
+                <th style="padding: 12px;">Time Captured</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for f in flags %}
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 12px;">⚠️ {{ f.flag_type }}</td>
+                <td style="padding: 12px;">#{{ f.attempt_id }}</td>
+                <td style="padding: 12px;"><span class="badge badge-danger">{{ f.severity | upper }}</span></td>
+                <td style="padding: 12px; font-size: 0.85rem; color: #666;">{{ f.timestamp.strftime('%H:%M:%S') }}</td>
+            </tr>
+            {% endfor %}
+            {% if not flags %}
+            <tr>
+                <td colspan="4" style="padding: 40px; text-align: center; color: #666;">No proctoring flags detected.
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

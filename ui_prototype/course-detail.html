@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS-302: Advanced Databases - SIMAD oLearn</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="brand">
+            SIMAD <span>oLearn</span>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="index.html">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                        </path>
+                    </svg>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="courses.html" class="active">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                        </path>
+                    </svg>
+                    My Courses
+                </a>
+            </li>
+            <!-- Other Links Omitted for Space -->
+        </ul>
+    </aside>
+
+    <main class="main-content" style="overflow: hidden;">
+        <header>
+            <div>
+                <a href="courses.html"
+                    style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">&larr; Back to
+                    Courses</a>
+                <h1 class="section-title" style="margin-top: 8px;">CS-302: Advanced Database Systems</h1>
+            </div>
+            <div class="user-profile">
+                <span style="font-weight: 500;">Mohamed Osman</span>
+                <div class="avatar">MO</div>
+            </div>
+        </header>
+
+        <div class="course-layout">
+            <!-- Course Sidebar -->
+            <div class="course-sidebar">
+                <ul class="module-list">
+                    <li class="module-item">Course Syllabus</li>
+                    <li class="module-item">Announcements <span class="badge badge-danger"
+                            style="margin-left: auto;">2</span></li>
+
+                    <div class="module-header">Module 1: Intro to NoSQL</div>
+                    <a href="#" class="module-item active">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                                d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z">
+                            </path>
+                        </svg>
+                        Lecture 1.1: CAP Theorem
+                    </a>
+                    <a href="quiz-interface.html" class="module-item">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        Quiz 1: Concepts Check
+                    </a>
+
+                    <div class="module-header">Module 2: Sharding</div>
+                    <a href="assignment.html" class="module-item">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+                            <path fill-rule="evenodd"
+                                d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        Assignment: Shard Keys
+                    </a>
+                </ul>
+            </div>
+
+            <!-- Content Area -->
+            <div
+                style="background: white; border-radius: 12px; padding: 32px; box-shadow: var(--shadow-sm); overflow-y: auto;">
+                <h2 style="margin-bottom: 16px;">Lecture 1.1: The CAP Theorem Explained</h2>
+
+                <div class="video-player">
+                    <div class="play-button">▶</div>
+                </div>
+
+                <div
+                    style="display: flex; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid #eee;">
+                    <button class="btn-primary" style="background-color: var(--simad-green);">Mark as Complete</button>
+                    <button class="btn-primary"
+                        style="background-color: var(--simad-light-blue); color: var(--simad-blue);">Download Slides
+                        (PDF)</button>
+                </div>
+
+                <h3>Description</h3>
+                <p style="color: #666; line-height: 1.6;">
+                    In this lecture, we explore the trade-offs between Consistency, Availability, and Partition
+                    Tolerance in distributed systems.
+                    This is foundational for understanding why NoSQL databases like MongoDB and Cassandra behave
+                    differently from SQL.
+                </p>
+
+                <h3 style="margin-top: 24px;">Discussion</h3>
+                <div style="margin-top: 16px; background: #f9f9f9; padding: 16px; border-radius: 8px;">
+                    <div style="display: flex; gap: 12px;">
+                        <div class="avatar" style="width: 32px; height: 32px; font-size: 0.8rem;">MA</div>
+                        <div>
+                            <h4 style="font-size: 0.9rem;">Mohamed Ali</h4>
+                            <p style="font-size: 0.85rem; color: #666;">Does this apply to SQL databases if we use
+                                replication?</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

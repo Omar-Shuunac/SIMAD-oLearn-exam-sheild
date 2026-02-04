@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Check - Exam Shield</title>
+    <!-- Use Flask static file if possible, or relative path if direct -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body style="display: block; background-color: #f0f2f5;">
+
+    <div class="shield-container">
+
+        <div class="brand" style="justify-content: center; margin-bottom: 24px;">
+            SIMAD <span>Exam Shield</span>
+        </div>
+
+        <div class="card">
+            <h1 style="font-size: 1.5rem; margin-bottom: 8px;">System Diagnostics</h1>
+            <p style="color: #666; margin-bottom: 24px;">We are checking your device readiness for the secure exam
+                environment.</p>
+
+            <div class="step-indicator">
+                <div class="step-dot active"></div>
+                <div class="step-dot"></div>
+                <div class="step-dot"></div>
+            </div>
+
+            <div class="check-list">
+                <div class="check-item">
+                    <div style="text-align: left;">
+                        <h4 style="margin-bottom: 4px;">Webcam Access</h4>
+                        <p style="font-size: 0.8rem; color: #666;">Required for proctoring</p>
+                    </div>
+                    <div class="check-status loading" id="webcam-result"></div>
+                </div>
+
+                <div class="check-item">
+                    <div style="text-align: left;">
+                        <h4 style="margin-bottom: 4px;">Microphone Access</h4>
+                        <p style="font-size: 0.8rem; color: #666;">Audio monitoring enabled</p>
+                    </div>
+                    <div class="check-status loading" id="mic-result"></div>
+                </div>
+
+                <div class="check-item">
+                    <div style="text-align: left;">
+                        <h4 style="margin-bottom: 4px;">Internet Connection</h4>
+                        <p style="font-size: 0.8rem; color: #666;">Check latency and stability</p>
+                    </div>
+                    <div class="check-status loading" id="net-result"></div>
+                </div>
+
+                <div class="check-item">
+                    <div style="text-align: left;">
+                        <h4 style="margin-bottom: 4px;">Browser Environment</h4>
+                        <p style="font-size: 0.8rem; color: #666;">Checking for forbidden plugins...</p>
+                    </div>
+                    <div class="check-status loading" id="browser-result"></div>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="proceed-btn" style="width: 100%; opacity: 0.5; pointer-events: none;"
+                onclick="window.location.href='/shield-verify.html'">Proceed to Identity Check</button>
+
+            <script>
+                async function runChecks() {
+                    const steps = [
+                        { id: 'webcam-result', check: () => checkMedia('video') },
+                        { id: 'mic-result', check: () => checkMedia('audio') },
+                        { id: 'net-result', check: checkNetwork },
+                        { id: 'browser-result', check: checkBrowser }
+                    ];
+
+                    let allPassed = true;
+
+                    for (const step of steps) {
+                        const statusEl = document.getElementById(step.id);
+                        if (!statusEl) continue;
+
+                        try {
+                            // Check
+                            const success = await step.check();
+                            if (success) {
+                                statusEl.className = 'check-status passing';
+                                statusEl.innerHTML = '✓';
+                            } else {
+                                statusEl.className = 'check-status';
+                                statusEl.style.borderColor = 'red';
+                                statusEl.style.color = 'red';
+                                statusEl.innerHTML = '✕';
+                                allPassed = false;
+                            }
+                        } catch (e) {
+                            console.error(e);
+                            allPassed = false;
+                        }
+                    }
+
+                    if (allPassed) {
+                        const btn = document.getElementById('proceed-btn');
+                        btn.style.opacity = '1';
+                        btn.style.pointerEvents = 'auto';
+                    }
+                }
+
+                async function checkMedia(type) {
+                    try {
+                        const constraints = type === 'video' ? { video: true } : { audio: true };
+                        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                        stream.getTracks().forEach(track => track.stop());
+                        return true;
+                    } catch (err) {
+                        console.log(err);
+                        return false; // Permission denied or device not found
+                    }
+                }
+
+                async function checkNetwork() {
+                    return navigator.onLine;
+                }
+
+                async function checkBrowser() {
+                    return new Promise(resolve => setTimeout(() => resolve(true), 1500));
+                }
+
+                document.addEventListener('DOMContentLoaded', runChecks);
+            </script>
+
+        </div>
+
+        <p style="margin-top: 16px; font-size: 0.85rem; color: #666;">
+            Need help? <a href="#" style="color: var(--simad-blue);">Contact Support</a>
+        </p>
+
+    </div>
+
+</body>
+
+</html>

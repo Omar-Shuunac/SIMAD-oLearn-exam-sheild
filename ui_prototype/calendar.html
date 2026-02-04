@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMAD oLearn - Calendar</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="brand">
+            SIMAD <span>oLearn</span>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="index.html">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                        </path>
+                    </svg>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="courses.html">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                        </path>
+                    </svg>
+                    My Courses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="exams.html">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Exams
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="calendar.html" class="active">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    Calendar
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="support.html">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
+                    </svg>
+                    Support
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <header>
+            <div style="display: flex; align-items: baseline; gap: 16px;">
+                <h1 class="section-title">February 2026</h1>
+                <div style="color: var(--text-muted); cursor: pointer;">&lt; Previous &nbsp; Next &gt;</div>
+            </div>
+            <div class="user-profile">
+                <span style="font-weight: 500;">Mohamed Osman</span>
+                <div class="avatar">MO</div>
+            </div>
+        </header>
+
+        <div class="calendar-grid">
+            <!-- Headers -->
+            <div class="calendar-day-header">SUN</div>
+            <div class="calendar-day-header">MON</div>
+            <div class="calendar-day-header">TUE</div>
+            <div class="calendar-day-header">WED</div>
+            <div class="calendar-day-header">THU</div>
+            <div class="calendar-day-header">FRI</div>
+            <div class="calendar-day-header">SAT</div>
+
+            <!-- Week 1 -->
+            <div class="calendar-day other-month"><span class="day-number">25</span></div>
+            <div class="calendar-day other-month"><span class="day-number">26</span></div>
+            <div class="calendar-day other-month"><span class="day-number">27</span></div>
+            <div class="calendar-day other-month"><span class="day-number">28</span></div>
+            <div class="calendar-day other-month"><span class="day-number">29</span></div>
+            <div class="calendar-day other-month"><span class="day-number">30</span></div>
+            <div class="calendar-day other-month"><span class="day-number">31</span></div>
+
+            <!-- Week 2 -->
+            <div class="calendar-day"><span class="day-number">1</span></div>
+            <div class="calendar-day"><span class="day-number">2</span></div>
+            <div class="calendar-day"><span class="day-number">3</span></div>
+            <div class="calendar-day" style="background-color: #f0f6fa;">
+                <span class="day-number" style="color: var(--simad-blue); font-weight: bold;">4</span>
+                <div class="cal-event exam">Midterm: CS-302</div>
+                <div class="cal-event class">Live Class: MGT-101</div>
+            </div>
+            <div class="calendar-day">
+                <span class="day-number">5</span>
+                <div class="cal-event assignment">Proposed Due</div>
+            </div>
+            <div class="calendar-day"><span class="day-number">6</span></div>
+            <div class="calendar-day"><span class="day-number">7</span></div>
+
+            <!-- Week 3 -->
+            <div class="calendar-day"><span class="day-number">8</span>
+                <div class="cal-event assignment">Case Study</div>
+            </div>
+            <div class="calendar-day"><span class="day-number">9</span></div>
+            <div class="calendar-day"><span class="day-number">10</span></div>
+            <div class="calendar-day"><span class="day-number">11</span></div>
+            <div class="calendar-day"><span class="day-number">12</span></div>
+            <div class="calendar-day"><span class="day-number">13</span></div>
+            <div class="calendar-day"><span class="day-number">14</span></div>
+
+            <!-- Week 4 (Partial) -->
+            <div class="calendar-day"><span class="day-number">15</span>
+                <div class="cal-event exam">Final: Business Ethics</div>
+            </div>
+            <div class="calendar-day"><span class="day-number">16</span></div>
+            <div class="calendar-day"><span class="day-number">17</span></div>
+            <div class="calendar-day"><span class="day-number">18</span></div>
+            <div class="calendar-day"><span class="day-number">19</span></div>
+            <div class="calendar-day"><span class="day-number">20</span></div>
+            <div class="calendar-day"><span class="day-number">21</span></div>
+        </div>
+    </main>
+</body>
+
+</html>

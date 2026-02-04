@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings - SIMAD oLearn</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="brand">
+            SIMAD <span>oLearn</span>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="index.html">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                        </path>
+                    </svg>
+                    Dashboard
+                </a>
+            </li>
+            <!-- Other items omitted for brevity but would exist -->
+            <li class="nav-item">
+                <a href="index.html">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                        </path>
+                    </svg>
+                    Back to Dashboard
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <header>
+            <h1 class="section-title">My Account Settings</h1>
+            <div class="user-profile">
+                <span style="font-weight: 500;">Mohamed Osman</span>
+                <div class="avatar">MO</div>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="left-col">
+                <div class="card">
+                    <h2 class="section-title"
+                        style="font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 8px;">Profile
+                        Information</h2>
+                    <div style="display: flex; gap: 24px; margin-top: 16px;">
+                        <div style="text-align: center;">
+                            <div class="avatar" style="width: 80px; height: 80px; font-size: 2rem; margin-bottom: 8px;">
+                                MO</div>
+                            <a href="#" style="font-size: 0.85rem; color: var(--simad-blue);">Change Photo</a>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="form-group">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" class="form-control" value="Mohamed Osman" disabled
+                                    style="background-color: #f5f5f5;">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Student ID</label>
+                                <input type="text" class="form-control" value="ST-2023-0891" disabled
+                                    style="background-color: #f5f5f5;">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" class="form-control" value="m.osman@student.simad.edu.so">
+                            </div>
+                            <button class="btn-primary">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="section-title"
+                        style="font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 8px;">Security</h2>
+                    <div class="form-group">
+                        <label class="form-label">Current Password</label>
+                        <input type="password" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">New Password</label>
+                        <input type="password" class="form-control">
+                    </div>
+                    <button class="btn-primary" style="background-color: #666;">Update Password</button>
+                </div>
+            </div>
+
+            <div class="right-col">
+                <div class="card">
+                    <h2 class="section-title"
+                        style="font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 8px;">Notifications
+                    </h2>
+
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee;">
+                        <div>
+                            <h4 style="font-size: 0.95rem;">Exam Alerts</h4>
+                            <p style="font-size: 0.8rem; color: #666;">Receive SMS before exams start</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee;">
+                        <div>
+                            <h4 style="font-size: 0.95rem;">Grade Posted</h4>
+                            <p style="font-size: 0.8rem; color: #666;">Email when grades are released</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0;">
+                        <div>
+                            <h4 style="font-size: 0.95rem;">Marketing</h4>
+                            <p style="font-size: 0.8rem; color: #666;">News about university events</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </main>
+</body>
+
+</html>
