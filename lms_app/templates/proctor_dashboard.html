@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Proctor Dashboard | SIMAD oLearn{% endblock %}
+{% block header_title %}
+<a href="{{ url_for('exam_sessions') }}" style="color: var(--text-muted); text-decoration: none; font-size: 0.85rem;">←
+    Exam Sessions</a>
+<h1 style="margin-top: 4px;">Live Session Monitor — {{ exam_sess.title }}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <div class="left-col">
+
+        <!-- Session info bar -->
+        <div class="card" style="padding: 20px; margin-bottom: 20px;
+             border-left: 4px solid {{ 'var(--success)' if exam_sess.status == 'live' else 'var(--simad-blue)' }};">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <h2 style="font-size: 1rem;">{{ exam_sess.title }}</h2>
+                    <p style="font-size: 0.85rem; color: #666; margin-top: 4px;">
+                        📅 {{ exam_sess.start_time.strftime('%d %b, %H:%M') }} →
+                        {{ exam_sess.end_time.strftime('%H:%M') }}
+                        &nbsp;·&nbsp;
+                        ⏱ {{ exam_sess.duration_mins }} min
+                    </p>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    {% if exam_sess.status == 'live' %}
+                    <span class="badge badge-success" style="font-size: 0.8rem; animation: pulse 2s infinite;">●
+                        LIVE</span>
+                    <form action="/exam_admin/session/{{ exam_sess.id }}/end" method="POST">
+                        <button type="submit" class="btn-primary"
+                            style="font-size: 0.82rem; padding: 8px 16px; background: var(--danger);">
+                            ■ End Session
+                        </button>
+                    </form>
+                    {% else %}
+                    <span class="badge badge-secondary">{{ exam_sess.status | upper }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Attempts list -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="font-size: 1rem;">Candidates ({{ attempts | length }})</h2>
+                {% if exam_sess.status == 'live' %}
+                <button onclick="location.reload()" style="padding: 7px 16px; border: 1px solid #ddd; border-radius: 8px;
+                               background: white; cursor: pointer; font-size: 0.82rem; color: #555;">
+                    🔄 Refresh
+                </button>
+                {% endif %}
+            </div>
+
+            {% if attempts %}
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.87rem;">
+                    <thead>
+                        <tr style="background: #f8f9ff; text-align: left;">
+                            <th style="padding: 10px 14px; font-weight: 600; color: #555;">Candidate</th>
+                            <th style="padding: 10px 14px; font-weight: 600; color: #555;">Status</th>
+                            <th style="padding: 10px 14px; font-weight: 600; color: #555;">Started</th>
+                            <th style="padding: 10px 14px; font-weight: 600; color: #555;">Flags</th>
+                            <th style="padding: 10px 14px; font-weight: 600; color: #555;">Score</th>
+                            <th style="padding: 10px 14px; font-weight: 600; color: #555;">Integrity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in attempts %}
+                        {% set candidate_flags = flags | selectattr('attempt_id', 'equalto', a.id) | list %}
+                        <tr
+                            style="border-bottom: 1px solid #eee;
+                                   {{ 'background: #fff5f5;' if candidate_flags | length > 2 or a.status == 'flagged' else '' }}">
+                            <td style="padding: 10px 14px;">
+                                <strong>{{ a.student.name }}</strong><br>
+                                <span style="font-size: 0.78rem; color: #888;">{{ a.student.email }}</span>
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                {% if a.status == 'submitted' %}
+                                <span class="badge badge-success">Submitted</span>
+                                {% elif a.status == 'flagged' %}
+                                <span class="badge badge-danger">⚠ Flagged</span>
+                                {% else %}
+                                <span class="badge badge-warning">In Progress</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 10px 14px; color: #666; font-size: 0.8rem;">
+                                {{ a.started_at.strftime('%H:%M:%S') }}
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                {% if candidate_flags %}
+                                <span style="color: var(--danger); font-weight: 700;">
+                                    ⚠ {{ candidate_flags | length }}
+                                </span>
+                                {% else %}
+                                <span style="color: var(--success);">✔ 0</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                {% if a.score is not none %}
+                                {{ a.score | int }}/{{ a.max_score | int }}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <span
+                                    class="badge {{ 'badge-success' if a.integrity_status == 'certified' else ('badge-danger' if a.integrity_status == 'invalidated' else 'badge-secondary') }}">
+                                    {{ a.integrity_status | upper }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 60px; color: #aaa;">
+                <div style="font-size: 3rem; margin-bottom: 12px;">👤</div>
+                <p>No candidates have joined yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right: live flag feed -->
+    <div class="right-col">
+        <div class="card">
+            <h3 style="font-size: 0.95rem; margin-bottom: 16px;">
+                ⚠️ Integrity Flags
+                {% if flags %}<span class="badge badge-danger" style="font-size: 0.75rem; margin-left: 6px;">{{ flags |
+                    length }}</span>{% endif %}
+            </h3>
+            {% if flags %}
+            <div style="display: flex; flex-direction: column; gap: 10px; max-height: 600px; overflow-y: auto;">
+                {% for f in flags %}
+                <div
+                    style="padding: 12px 14px; border-radius: 8px; font-size: 0.85rem;
+                            background: {{ '#fff5f5' if f.severity == 'high' else '#fffbeb' if f.severity == 'medium' else '#f9fafb' }};
+                            border-left: 3px solid {{ 'var(--danger)' if f.severity == 'high' else 'var(--simad-gold)' if f.severity == 'medium' else '#d1d5db' }};">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <strong>{{ f.flag_type | replace('_', ' ') | title }}</strong>
+                        <span style="font-size: 0.75rem; color: #aaa;">{{ f.timestamp.strftime('%H:%M:%S') }}</span>
+                    </div>
+                    <p style="color: #666; font-size: 0.8rem;">
+                        Attempt #{{ f.attempt_id }} &nbsp;·&nbsp;
+                        <span
+                            class="badge {{ 'badge-danger' if f.severity == 'high' else 'badge-warning' if f.severity == 'medium' else 'badge-secondary' }}"
+                            style="font-size: 0.65rem;">{{ f.severity | upper }}</span>
+                    </p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 40px; color: #ccc;">
+                <div style="font-size: 2.5rem; margin-bottom: 10px;">✅</div>
+                <p>No integrity flags detected.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Link to post-exam review -->
+        {% if exam_sess.status == 'ended' %}
+        <div class="card" style="margin-top: 20px; background: #f0fff4; border: 1px solid #86efac;">
+            <h3 style="font-size: 0.9rem; color: #15803d; margin-bottom: 12px;">Session Ended</h3>
+            <a href="{{ url_for('integrity_review') }}" class="btn-primary"
+                style="display: block; text-align: center; padding: 12px;">
+                ⚖️ Open Integrity Review
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if exam_sess.status == 'live' %}
+<script>
+    // Auto-refresh every 30 seconds for live proctoring
+    setTimeout(() => location.reload(), 30000);
+</script>
+{% endif %}
+{% endblock %}

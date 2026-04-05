@@ -2,32 +2,55 @@
 {% set active_page = 'dashboard' %}
 
 {% block title %}Student Dashboard - SIMAD oLearn{% endblock %}
-
 {% block header_title %}Student Overview{% endblock %}
 
 {% block content %}
 <div class="dashboard-grid">
     <div class="left-col">
+
+        <!-- Welcome -->
         <div class="card welcome-card">
             <h1>Good Day, {{ session.user_name.split(' ')[0] }}! 👋</h1>
-            <p>Welcome back to SIMAD oLearn. You have {{ enrollments|length }} active courses this semester.</p>
+            <p>Welcome back. You have <strong>{{ enrollments|length }}</strong> active course{{ 's' if
+                enrollments|length != 1 }}.
+                {% set total_pending = [] %}
+                {% for e in enrollments %}
+                {# count not-yet-submitted assignments across courses #}
+                {% endfor %}
+            </p>
         </div>
 
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div style="padding: 12px 16px; border-radius: 8px; margin-bottom: 12px;
+            background: {{ '#f0fdf4' if category == 'success' else '#fff0f0' }};
+            border: 1px solid {{ '#86efac' if category == 'success' else '#fca5a5' }};
+            color: {{ '#15803d' if category == 'success' else '#b91c1c' }}; font-size: 0.9rem;">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endwith %}
+
+        <!-- Quick exam launch (if enrolled in at least one course) -->
         {% if enrollments %}
         <div class="card exam-shield-card">
             <div class="exam-info">
                 <div class="exam-status">
-                    <h3>Active Exam: Final Assessment</h3>
-                    <span class="status-badge" style="background-color: var(--success);">AVAILABLE NOW</span>
+                    <h3>Exam Shield Ready</h3>
+                    <span class="status-badge" style="background-color: var(--success);">AVAILABLE</span>
                 </div>
-                <p style="color: var(--text-muted); margin-top: 4px;">{{ enrollments[0].course.code }} • Secure Exam
-                    Shield Required</p>
+                <p style="color: var(--text-muted); margin-top: 4px; font-size: 0.88rem;">
+                    Start a proctored exam session with identity verification
+                </p>
             </div>
-            <button class="btn-primary btn-secure" onclick="window.location.href='shield-check.html'">Launch Exam Shield
-                🛡️</button>
+            <button class="btn-primary btn-secure" onclick="window.location.href='{{ url_for('shield_check') }}'">
+                Launch Exam Shield 🛡️
+            </button>
         </div>
         {% endif %}
 
+        <!-- Enrolled Courses -->
         <h2 class="section-title">Enrolled Courses</h2>
         <div class="courses-container">
             {% for enroll in enrollments %}
@@ -35,40 +58,96 @@
                 style="cursor: pointer;">
                 <div>
                     <span class="course-tag">{{ enroll.course.code }}</span>
-                    <h3>{{ enroll.course.title }}</h3>
+                    <h3 style="margin-top: 8px;">{{ enroll.course.title }}</h3>
                 </div>
-                <div class="course-progress">
-                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
-                        <span>Current Grade</span>
-                        <span>{{ enroll.grade if enroll.grade else 'TBD' }}</span>
+                <div class="course-progress" style="margin-top: 16px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px;">
+                        <span>Progress</span>
+                        <strong>{{ enroll.progress }}%</strong>
                     </div>
                     <div class="progress-bar">
                         <div class="progress-fill" style="width: {{ enroll.progress }}%;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: 8px;">
+                        <span style="color: #888;">Grade</span>
+                        <span style="font-weight: 600; color: {{ 'var(--success)' if enroll.grade else '#aaa' }};">
+                            {{ enroll.grade ~ '/100' if enroll.grade else 'TBD' }}
+                        </span>
                     </div>
                 </div>
             </div>
             {% endfor %}
 
             {% if not enrollments %}
-            <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-                <p style="color: #666;">You are not enrolled in any courses yet.</p>
+            <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 60px; border: 2px dashed #ddd;">
+                <div style="font-size: 3rem; margin-bottom: 16px;">📚</div>
+                <h3>No Courses Yet</h3>
+                <p style="color: #888; margin-top: 8px;">You are not enrolled in any courses this semester.</p>
             </div>
             {% endif %}
         </div>
     </div>
 
+    <!-- Right Panel -->
     <div class="right-col">
+
+        <!-- Announcements -->
+        {% if announcements %}
+        <div class="card" style="margin-bottom: 20px;">
+            <h3 class="section-title" style="font-size: 0.95rem; margin-bottom: 16px;">📢 Announcements</h3>
+            {% for ann in announcements %}
+            <div style="padding: 12px 14px; border-radius: 8px; margin-bottom: 10px;
+                        background: {{ '#fffbeb' if ann.is_pinned else '#f9fafb' }};
+                        border-left: 3px solid {{ 'var(--simad-gold)' if ann.is_pinned else '#ddd' }};">
+                <p style="font-weight: 600; font-size: 0.88rem; margin-bottom: 4px;">
+                    {{ '📌 ' if ann.is_pinned }}{{ ann.title }}
+                </p>
+                <p style="font-size: 0.82rem; color: #666; margin-bottom: 4px;">{{ ann.body[:120] }}{{ '…' if
+                    ann.body|length > 120 }}</p>
+                <p style="font-size: 0.75rem; color: #aaa;">
+                    {{ ann.course.code ~ ' • ' if ann.course else 'Platform • ' }}{{ ann.created_at.strftime('%d %b %Y')
+                    }}
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Integrity / Status -->
         <div class="card">
-            <h3 class="section-title" style="font-size: 1rem;">System Integrity</h3>
-            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+            <h3 class="section-title" style="font-size: 0.95rem; margin-bottom: 16px;">System Integrity</h3>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="color: var(--success);">✔</span>
-                    <span style="font-size: 0.9rem;">Identity Verified</span>
+                    <span style="color: var(--success); font-size: 1.1rem;">✔</span>
+                    <span style="font-size: 0.9rem;">Account Verified</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="color: var(--simad-blue);">●</span>
+                    <span style="color: var(--simad-blue); font-size: 1.1rem;">●</span>
                     <span style="font-size: 0.9rem;">Exam Shield: Active</span>
                 </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="color: var(--simad-gold); font-size: 1.1rem;">◆</span>
+                    <span style="font-size: 0.9rem;">Session Secure</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="card" style="margin-top: 20px;">
+            <h3 class="section-title" style="font-size: 0.95rem; margin-bottom: 16px;">Quick Actions</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <a href="{{ url_for('courses') }}" style="padding: 10px 14px; background: #f0f7ff; border-radius: 8px;
+                          text-decoration: none; color: var(--simad-blue); font-size: 0.88rem; font-weight: 500;">
+                    📚 Browse My Courses
+                </a>
+                <a href="{{ url_for('exams') }}" style="padding: 10px 14px; background: #f0fff4; border-radius: 8px;
+                          text-decoration: none; color: #15803d; font-size: 0.88rem; font-weight: 500;">
+                    🛡️ Exams & Shield
+                </a>
+                <a href="{{ url_for('support') }}" style="padding: 10px 14px; background: #fdf4ff; border-radius: 8px;
+                          text-decoration: none; color: #7c3aed; font-size: 0.88rem; font-weight: 500;">
+                    💬 Help & Support
+                </a>
             </div>
         </div>
     </div>

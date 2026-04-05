@@ -1,148 +1,147 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
+{% block title %}Exams | SIMAD oLearn{% endblock %}
+{% block header_title %}Examination Schedule{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIMAD oLearn - Exams</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
+{% block content %}
+<div style="margin-top: 20px;">
 
-<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div style="padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; font-size: 0.9rem;
+        background: {{ '#f0fdf4' if category == 'success' else ('#fffbeb' if category == 'warning' else '#fff0f0') }};
+        border: 1px solid {{ '#86efac' if category == 'success' else ('#fde68a' if category == 'warning' else '#fca5a5') }};
+        color: {{ '#15803d' if category == 'success' else ('#92400e' if category == 'warning' else '#b91c1c') }};">
+        {{ message }}</div>
+    {% endfor %}
+    {% endwith %}
 
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar">
-        <div class="brand">
-            SIMAD <span>oLearn</span>
-        </div>
-        <ul class="nav-menu">
-            <li class="nav-item">
-                <a href="index.html">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
-                        </path>
-                    </svg>
-                    Dashboard
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="courses.html">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-                        </path>
-                    </svg>
-                    My Courses
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="exams.html" class="active">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    Exams
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="calendar.html">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                        </path>
-                    </svg>
-                    Calendar
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="support.html">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z">
-                        </path>
-                    </svg>
-                    Support
-                </a>
-            </li>
-        </ul>
-    </aside>
-
-    <main class="main-content">
-        <header>
-            <h1 class="section-title">Examination Schedule</h1>
-            <div class="user-profile">
-                <span style="font-weight: 500;">Mohamed Osman</span>
-                <div class="avatar">MO</div>
-            </div>
-        </header>
-
-        <div class="card exam-shield-card" style="margin-bottom: 32px;">
-            <div class="exam-info">
-                <div class="exam-status">
-                    <h3>Midterm: Advanced Database Systems</h3>
-                    <span class="status-badge">Available Now</span>
+    <!-- LIVE exams -->
+    {% if live_sessions %}
+    <h2 style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px;
+               color: var(--danger); font-weight: 700; margin-bottom: 14px;">
+        ● Live Now
+    </h2>
+    {% for sess in live_sessions %}
+    <div class="card" style="margin-bottom: 16px; border-left: 4px solid var(--danger);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <h3 style="font-size: 1rem; margin-bottom: 6px;">{{ sess.title }}</h3>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.82rem; color: #666;">
+                    <span>⏱ {{ sess.duration_mins }} minutes</span>
+                    <span>📅 Ends {{ sess.end_time.strftime('%d %b, %H:%M') }}</span>
+                    {% if sess.is_placement %}
+                    <span style="color: #6366f1; font-weight: 600;">🎯 Placement Test</span>
+                    {% endif %}
                 </div>
-                <p style="color: var(--text-muted); margin-top: 4px;">Time Limit: 90 Minutes • Secure Browser Required
-                </p>
             </div>
-            <button class="btn-primary btn-secure" onclick="window.location.href='shield-check.html'">Launch Exam Shield
-                🛡️</button>
+            {% if attempt_map.get(sess.id) %}
+            {% set a = attempt_map[sess.id] %}
+            <a href="{{ url_for('exam_result', attempt_id=a.id) }}" class="btn-primary"
+                style="padding: 10px 24px; background: var(--simad-blue);">
+                View Result
+            </a>
+            {% else %}
+            <a href="{{ url_for('shield_check') }}?session={{ sess.id }}" class="btn-primary btn-secure"
+                style="padding: 12px 28px; background: var(--danger);">
+                🛡️ Launch Exam Shield
+            </a>
+            {% endif %}
         </div>
+    </div>
+    {% endfor %}
+    {% endif %}
 
-        <div class="table-container">
-            <table>
+    <!-- UPCOMING exams -->
+    {% if scheduled_sessions %}
+    <h2 style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px;
+               color: #888; font-weight: 700; margin: 28px 0 14px;">
+        📅 Upcoming
+    </h2>
+    {% for sess in scheduled_sessions %}
+    <div class="card" style="margin-bottom: 12px; border-left: 4px solid var(--simad-gold); opacity: 0.9;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <h3 style="font-size: 1rem; margin-bottom: 6px; color: #444;">{{ sess.title }}</h3>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.82rem; color: #888;">
+                    <span>⏱ {{ sess.duration_mins }} min</span>
+                    <span>📅 Starts {{ sess.start_time.strftime('%d %b %Y, %H:%M') }}</span>
+                    {% if sess.is_placement %}<span style="color: #6366f1;">🎯 Placement</span>{% endif %}
+                </div>
+            </div>
+            <button disabled class="btn-primary"
+                style="padding: 10px 24px; background: #e5e7eb; color: #9ca3af; cursor: not-allowed;">
+                🔒 Locked
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if not live_sessions and not scheduled_sessions %}
+    <div class="card" style="text-align: center; padding: 60px; border: 2px dashed #ddd; margin-top: 20px;">
+        <div style="font-size: 3rem; margin-bottom: 16px;">📋</div>
+        <h3>No Active Exams</h3>
+        <p style="color: #888; margin-top: 8px;">No exams are currently live or scheduled for you.</p>
+    </div>
+    {% endif %}
+
+    <!-- Past attempts -->
+    {% if past_attempts %}
+    <h2 style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px;
+               color: #888; font-weight: 700; margin: 32px 0 14px;">
+        ✅ Completed
+    </h2>
+    <div class="card">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
                 <thead>
-                    <tr>
-                        <th>Exam Name</th>
-                        <th>Course</th>
-                        <th>Date & Time</th>
-                        <th>Status</th>
-                        <th>Score</th>
-                        <th>Action</th>
+                    <tr style="text-align: left; background: #f9fafb;">
+                        <th style="padding: 12px 14px; font-weight: 600; color: #555;">Exam</th>
+                        <th style="padding: 12px 14px; font-weight: 600; color: #555;">Date</th>
+                        <th style="padding: 12px 14px; font-weight: 600; color: #555;">Score</th>
+                        <th style="padding: 12px 14px; font-weight: 600; color: #555;">Integrity</th>
+                        <th style="padding: 12px 14px; font-weight: 600; color: #555;">Review</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td><strong>Advanced Database Systems (Midterm)</strong></td>
-                        <td>CS-302</td>
-                        <td>Feb 04, 2026 • 2:00 PM</td>
-                        <td><span class="badge badge-danger">Active</span></td>
-                        <td>-</td>
-                        <td><a href="quiz-interface.html" style="color: var(--simad-blue); font-weight: 600;">Start</a>
+                    {% for a in past_attempts %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 12px 14px; font-weight: 600;">
+                            {{ a.session.title if a.session else 'Unknown Exam' }}
+                        </td>
+                        <td style="padding: 12px 14px; color: #666; font-size: 0.82rem;">
+                            {{ a.submitted_at.strftime('%d %b %Y') if a.submitted_at else '—' }}
+                        </td>
+                        <td style="padding: 12px 14px;">
+                            {% if a.score is not none %}
+                            <strong
+                                style="color: {{ 'var(--success)' if a.score / a.max_score >= 0.5 else 'var(--danger)' }};">
+                                {{ a.score | int }}/{{ a.max_score | int }}
+                                ({{ (a.score / a.max_score * 100) | round(1) }}%)
+                            </strong>
+                            {% else %}
+                            <span style="color: #aaa;">Pending grading</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 12px 14px;">
+                            <span class="badge
+                                {{ 'badge-success' if a.integrity_status == 'certified' else
+                                   ('badge-danger' if a.integrity_status == 'invalidated' else 'badge-secondary') }}">
+                                {{ a.integrity_status | upper }}
+                            </span>
+                        </td>
+                        <td style="padding: 12px 14px;">
+                            <a href="{{ url_for('exam_result', attempt_id=a.id) }}"
+                                style="color: var(--simad-blue); font-size: 0.88rem; font-weight: 600;">
+                                View →
+                            </a>
                         </td>
                     </tr>
-                    <tr>
-                        <td>Business Ethics Final</td>
-                        <td>MGT-101</td>
-                        <td>Feb 15, 2026 • 10:00 AM</td>
-                        <td><span class="badge badge-warning">Upcoming</span></td>
-                        <td>-</td>
-                        <td><button class="btn-primary" disabled
-                                style="padding: 4px 8px; font-size: 0.8rem; background: #ccc;">Locked</button></td>
-                    </tr>
-                    <tr>
-                        <td>Web Dev Quiz 3</td>
-                        <td>CS-204</td>
-                        <td>Jan 28, 2026</td>
-                        <td><span class="badge badge-success">Completed</span></td>
-                        <td><strong>88/100</strong></td>
-                        <td><a href="#" style="color: var(--simad-blue);">Review</a></td>
-                    </tr>
-                    <tr>
-                        <td>Data Structures Quiz 2</td>
-                        <td>CS-201</td>
-                        <td>Jan 20, 2026</td>
-                        <td><span class="badge badge-success">Completed</span></td>
-                        <td><strong>92/100</strong></td>
-                        <td><a href="#" style="color: var(--simad-blue);">Review</a></td>
-                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
-
-    </main>
-</body>
-
-</html>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

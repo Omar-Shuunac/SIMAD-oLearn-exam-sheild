@@ -1,6 +1,7 @@
 from app import app
 from models import db, User, ExamPolicy, Course, Enrollment, ExamSession, Question, Choice, ExamAttempt, IntegrityFlag, Module, Assignment
 from datetime import datetime
+from werkzeug.security import generate_password_hash
 
 def init_db():
     with app.app_context():
@@ -13,7 +14,7 @@ def init_db():
             sys_admin = User(
                 name='SIMAD System Admin',
                 email='sys.admin@simad.edu.so',
-                password_hash='admin123',
+                password_hash=generate_password_hash('admin123', method='pbkdf2:sha256'),
                 role='sys_admin'
             )
             db.session.add(sys_admin)
@@ -24,7 +25,7 @@ def init_db():
             exam_admin = User(
                 name='SIMAD Exam Officer',
                 email='exam.office@simad.edu.so',
-                password_hash='exam123',
+                password_hash=generate_password_hash('exam123', method='pbkdf2:sha256'),
                 role='exam_admin'
             )
             db.session.add(exam_admin)
@@ -33,13 +34,13 @@ def init_db():
         # 3. Standard Instructor & Student for testing
         instructor = User.query.filter_by(role='instructor').first()
         if not instructor:
-            instructor = User(name='Prof. Hassan', email='prof@simad.edu.so', password_hash='prof123', role='instructor')
+            instructor = User(name='Prof. Hassan', email='prof@simad.edu.so', password_hash=generate_password_hash('prof123', method='pbkdf2:sha256'), role='instructor')
             db.session.add(instructor)
             db.session.flush()
 
         student = User.query.filter_by(role='student').first()
         if not student:
-            student = User(name='Mohamed Osman', email='student@simad.edu.so', password_hash='student123', role='student')
+            student = User(name='Mohamed Osman', email='student@simad.edu.so', password_hash=generate_password_hash('student123', method='pbkdf2:sha256'), role='student')
             db.session.add(student)
 
         # 4. Sample Course & Quiz

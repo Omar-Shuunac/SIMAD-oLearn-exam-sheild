@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Result | SIMAD oLearn</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #f4f6f9;
+        }
+
+        .result-hero {
+            background: {
+                % if percentage>=80 %
+            }
+
+            linear-gradient(135deg, #15803d, #16a34a) {
+                % elif percentage>=50 %
+            }
+
+            linear-gradient(135deg, #b45309, #d97706) {
+                % else %
+            }
+
+            linear-gradient(135deg, #991b1b, #dc2626) {
+                % endif %
+            }
+
+            ;
+            color: white;
+            text-align: center;
+            padding: 52px 40px;
+            border-radius: 16px;
+            margin-bottom: 32px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .result-score {
+            font-size: 5rem;
+            font-weight: 900;
+            line-height: 1;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .result-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-top: 8px;
+        }
+
+        .q-result-row {
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+        }
+
+        .q-result-row.correct {
+            background: #f0fdf4;
+            border-color: #22c55e;
+        }
+
+        .q-result-row.incorrect {
+            background: #fff5f5;
+            border-color: #ef4444;
+        }
+
+        .q-result-row.neutral {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+    </style>
+</head>
+
+<body style="padding: 40px 24px; max-width: 900px; margin: 0 auto;">
+
+    <!-- Hero Result Card -->
+    <div class="result-hero">
+        <div style="font-size: 3rem; margin-bottom: 12px;">
+            {% if percentage >= 80 %}🏆{% elif percentage >= 50 %}📊{% else %}📉{% endif %}
+        </div>
+        <div class="result-score">{{ percentage }}%</div>
+        <div class="result-label">
+            {{ attempt.score | int }} / {{ attempt.max_score | int }} marks scored
+        </div>
+        <div style="margin-top: 16px; font-size: 0.9rem; opacity: 0.8;">
+            {{ exam_sess.title }}
+        </div>
+        <div style="margin-top: 8px; display: inline-flex; gap: 12px; background: rgba(255,255,255,0.15);
+                    padding: 8px 20px; border-radius: 8px; font-size: 0.85rem; flex-wrap: wrap;">
+            <span>Submitted: {{ attempt.submitted_at.strftime('%d %b %Y, %H:%M') }}</span>
+            <span>·</span>
+            <span>Integrity: <strong>{{ attempt.integrity_status | upper }}</strong></span>
+        </div>
+    </div>
+
+    <!-- Per-question breakdown (MCQ only) -->
+    {% set mcq_results = results | selectattr('is_correct', 'ne', none) | list %}
+    {% if mcq_results %}
+    <div
+        style="background: white; border-radius: 14px; padding: 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 24px;">
+        <h2 style="font-size: 1rem; font-weight: 700; margin-bottom: 20px; color: #1e293b;">
+            Multiple Choice Review
+        </h2>
+        {% for r in results %}
+        {% if r.is_correct is not none %}
+        <div class="q-result-row {{ 'correct' if r.is_correct else 'incorrect' }}">
+            <div
+                style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+                <div style="flex: 1;">
+                    <p style="font-weight: 600; font-size: 0.9rem; margin-bottom: 6px;">{{ r.question.text }}</p>
+                    <p style="font-size: 0.85rem; margin-top: 4px;">
+                        Your answer: <strong>{{ r.selected }}</strong>
+                        {% if not r.is_correct %}
+                        &nbsp;·&nbsp; Correct: <strong style="color: #15803d;">{{ r.correct_answer }}</strong>
+                        {% endif %}
+                    </p>
+                </div>
+                <div style="font-size: 1.4rem;">
+                    {{ '✅' if r.is_correct else '❌' }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Short answers (no auto-grade) -->
+    {% set sa_results = results | rejectattr('is_correct', 'ne', none) | list %}
+    {% if sa_results %}
+    <div
+        style="background: white; border-radius: 14px; padding: 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 24px;">
+        <h2 style="font-size: 1rem; font-weight: 700; margin-bottom: 6px; color: #1e293b;">
+            Open-Ended Responses
+        </h2>
+        <p style="font-size: 0.85rem; color: #888; margin-bottom: 20px;">
+            These will be reviewed and graded manually by your instructor.
+        </p>
+        {% for r in sa_results %}
+        <div class="q-result-row neutral">
+            <p style="font-weight: 600; font-size: 0.9rem; margin-bottom: 8px;">{{ r.question.text }}</p>
+            <p style="font-size: 0.88rem; color: #555; white-space: pre-wrap; background: #f9fafb;
+                       padding: 12px 14px; border-radius: 6px;">{{ r.selected or '(No response given)' }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <a href="{{ url_for('exams') }}" style="padding: 12px 28px; border: 1px solid #ddd; border-radius: 8px;
+                  text-decoration: none; color: #444; background: white; font-size: 0.9rem;">
+            ← Back to Exams
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="btn-primary" style="padding: 12px 28px;">
+            Go to Dashboard
+        </a>
+    </div>
+
+</body>
+
+</html>

@@ -61,23 +61,34 @@ class ExamSession(db.Model):
     title = db.Column(db.String(200), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'))
     policy_id = db.Column(db.Integer, db.ForeignKey('exam_policy.id'))
-    
+
     start_time = db.Column(db.DateTime, nullable=False)
     end_time = db.Column(db.DateTime, nullable=False)
-    status = db.Column(db.String(20), default='scheduled') # 'scheduled', 'live', 'ended'
-    
+    duration_mins = db.Column(db.Integer, default=60)  # Phase 2: enforced timer
+    status = db.Column(db.String(20), default='scheduled')  # 'scheduled', 'live', 'ended'
+    is_placement = db.Column(db.Boolean, default=False)       # Phase 2: placement test flag
+
     attempts = db.relationship('ExamAttempt', backref='session', lazy=True)
+    questions = db.relationship('Question', backref='exam_session', lazy=True,
+                                foreign_keys='Question.session_id')
 
 class ExamAttempt(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     session_id = db.Column(db.Integer, db.ForeignKey('exam_session.id'))
     student_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    
-    status = db.Column(db.String(20), default='started') # 'started', 'in_progress', 'submitted', 'flagged'
-    integrity_status = db.Column(db.String(20), default='pending') # 'pending', 'certified', 'invalidated', 'appealed'
-    
+
+    status = db.Column(db.String(20), default='started')  # 'started', 'in_progress', 'submitted', 'flagged'
+    integrity_status = db.Column(db.String(20), default='pending')  # 'pending', 'certified', 'invalidated', 'appealed'
+
     started_at = db.Column(db.DateTime, default=datetime.utcnow)
     submitted_at = db.Column(db.DateTime, nullable=True)
+
+    # Phase 2: scoring + answer storage
+    answers_json = db.Column(db.Text, nullable=True)   # JSON: {"q_id": "answer", ...}
+    score = db.Column(db.Float, nullable=True)          # auto-calculated for MCQ
+    max_score = db.Column(db.Float, nullable=True)
+
+    student = db.relationship('User', backref='exam_attempts', lazy=True)
 
 class IntegrityFlag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -112,8 +123,7 @@ class Enrollment(db.Model):
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     progress = db.Column(db.Integer, default=0)
     grade = db.Column(db.Float, nullable=True)
-    
-    # Missing relationship causing the error
+
     course = db.relationship('Course', backref='enrollments', lazy=True)
 
 class Module(db.Model):
@@ -139,3 +149,29 @@ class Submission(db.Model):
     submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
     grade = db.Column(db.Float, nullable=True)
     feedback = db.Column(db.Text, nullable=True)
+
+
+# ─── Phase 1: Announcements ──────────────────────────────────────────────────
+
+class Announcement(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    # NULL course_id = platform-wide; set course_id = course-level
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=True)
+    author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_pinned = db.Column(db.Boolean, default=False)
+
+    course = db.relationship('Course', backref='announcements', lazy=True)
+    author = db.relationship('User', backref='announcements', lazy=True)
+
+
+# ─── Phase 1: Module Progress Tracking ───────────────────────────────────────
+
+class ModuleView(db.Model):
+    """Records when a student views/completes a specific module."""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    module_id = db.Column(db.Integer, db.ForeignKey('module.id'), nullable=False)
+    viewed_at = db.Column(db.DateTime, default=datetime.utcnow)

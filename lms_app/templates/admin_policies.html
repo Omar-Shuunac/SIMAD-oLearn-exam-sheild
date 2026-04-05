@@ -1,62 +1,111 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
+{% block title %}Policy Engine | SIMAD oLearn{% endblock %}
+{% block header_title %}Exam Guard Policies{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Policy Engine - SIMAD oLearn</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
+{% block content %}
+<div style="margin-top: 20px;">
 
-<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div style="padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem;
+        background: {{ '#f0fdf4' if category == 'success' else '#fff0f0' }};
+        border: 1px solid {{ '#86efac' if category == 'success' else '#fca5a5' }};
+        color: {{ '#15803d' if category == 'success' else '#b91c1c' }};">{{ message }}</div>
+    {% endfor %}
+    {% endwith %}
 
-    <aside class="sidebar">
-        <div class="brand">SIMAD <span>oLearn</span></div>
-        <ul class="nav-menu">
-            <li class="nav-item"><a href="/">🏛️ Exam Overview</a></li>
-            <li class="nav-item"><a href="/admin/policies" class="active">🛡️ Policy Engine</a></li>
-            <li class="nav-item"><a href="#">📅 Scheduling</a></li>
-            <li class="nav-item"><a href="/logout" style="color: var(--danger);">🚪 Sign Out</a></li>
-        </ul>
-    </aside>
+    <div class="card">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <h2 style="font-size: 1.1rem;">Guard Policies</h2>
+                <p style="font-size: 0.85rem; color: #888; margin-top: 4px;">
+                    Policies define proctoring requirements. Approve to lock before assigning to exams.
+                </p>
+            </div>
+            <a href="/admin/policies/create" class="btn-primary" style="padding: 10px 20px; font-size: 0.88rem;">+
+                Create Policy</a>
+        </div>
 
-    <main class="main-content">
-        <header>
-            <h1 class="section-title">Exam Shield Guard Policies</h1>
-            <button class="btn-primary" onclick="alert('Policy Creation logic pending...')">+ Create New Policy</button>
-        </header>
-
-        <div class="card" style="margin-top: 24px;">
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead style="text-align: left; background: #f8f9fa;">
-                    <tr>
-                        <th style="padding: 12px;">Policy Name</th>
-                        <th style="padding: 12px;">Version</th>
-                        <th style="padding: 12px;">Identity Tier</th>
-                        <th style="padding: 12px;">Secure Mode</th>
-                        <th style="padding: 12px;">Status</th>
-                        <th style="padding: 12px;">Actions</th>
+        {% if policies %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                <thead>
+                    <tr style="background: #f8f9ff; text-align: left;">
+                        <th style="padding: 12px 14px; font-weight: 600; color: #555;">Policy Name</th>
+                        <th style="padding: 12px 14px; font-weight: 600; color: #555;">Version</th>
+                        <th style="padding: 12px 14px; font-weight: 600; color: #555;">ID Tier</th>
+                        <th style="padding: 12px 14px; font-weight: 600; color: #555;">Proctoring</th>
+                        <th style="padding: 12px 14px; font-weight: 600; color: #555;">Violations</th>
+                        <th style="padding: 12px 14px; font-weight: 600; color: #555;">Rejoin Grace</th>
+                        <th style="padding: 12px 14px; font-weight: 600; color: #555;">Status</th>
+                        <th style="padding: 12px 14px; font-weight: 600; color: #555;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for policy in policies %}
                     <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 12px; font-weight: 500;">{{ policy.name }}</td>
-                        <td style="padding: 12px;">V{{ policy.version }}</td>
-                        <td style="padding: 12px;">Tier {{ policy.identity_tier }}</td>
-                        <td style="padding: 12px;">{{ 'REQUIRED' if policy.secure_mode else 'OPTIONAL' }}</td>
-                        <td style="padding: 12px;"><span class="badge badge-success">{{ policy.status }}</span></td>
-                        <td style="padding: 12px;">
-                            <a href="#" style="color: var(--simad-blue); margin-right: 12px;">Edit</a>
-                            <a href="#" style="color: #666;">Clone</a>
+                        <td style="padding: 12px 14px; font-weight: 600;">{{ policy.name }}</td>
+                        <td style="padding: 12px 14px; color: #888;">V{{ policy.version }}</td>
+                        <td style="padding: 12px 14px;">
+                            <span style="background: #f0f7ff; color: var(--simad-blue); padding: 3px 10px;
+                                         border-radius: 20px; font-size: 0.78rem; font-weight: 600;">
+                                Tier {{ policy.identity_tier }}
+                            </span>
+                        </td>
+                        <td style="padding: 12px 14px;">
+                            <span
+                                class="badge {{ 'badge-danger' if policy.proctoring_level == 'full' else 'badge-warning' if policy.proctoring_level == 'video' else 'badge-secondary' }}">
+                                {{ policy.proctoring_level | upper }}
+                            </span>
+                        </td>
+                        <td style="padding: 12px 14px; color: #666;">{{ policy.violation_threshold }} flags</td>
+                        <td style="padding: 12px 14px; color: #666;">{{ policy.rejoin_grace_mins }} min</td>
+                        <td style="padding: 12px 14px;">
+                            {% if policy.status == 'approved' %}
+                            <span class="badge badge-success">🔒 APPROVED</span>
+                            {% elif policy.status == 'draft' %}
+                            <span class="badge badge-warning">DRAFT</span>
+                            {% else %}
+                            <span class="badge badge-secondary">{{ policy.status | upper }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 12px 14px;">
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                {% if policy.status != 'approved' %}
+                                <form action="/admin/policies/{{ policy.id }}/approve" method="POST"
+                                    style="display: inline;">
+                                    <button type="submit" class="btn-primary"
+                                        style="font-size: 0.75rem; padding: 5px 10px; background: var(--success);">
+                                        ✓ Approve
+                                    </button>
+                                </form>
+                                <form action="/admin/policies/{{ policy.id }}/delete" method="POST"
+                                    style="display: inline;" onsubmit="return confirm('Delete this policy?')">
+                                    <button type="submit"
+                                        style="font-size: 0.75rem; padding: 5px 10px; border: 1px solid #fca5a5;
+                                                   border-radius: 6px; background: #fff0f0; color: #b91c1c; cursor: pointer;">
+                                        🗑 Delete
+                                    </button>
+                                </form>
+                                {% else %}
+                                <span style="font-size: 0.8rem; color: #aaa; font-style: italic;">Locked</span>
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-    </main>
-</body>
-
-</html>
+        {% else %}
+        <div style="text-align: center; padding: 60px; color: #aaa;">
+            <div style="font-size: 3rem; margin-bottom: 16px;">📜</div>
+            <p>No policies created yet.</p>
+            <a href="/admin/policies/create" class="btn-primary"
+                style="display: inline-block; margin-top: 16px; padding: 12px 24px;">Create First Policy</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,60 +1,202 @@
 {% extends "base.html" %}
-{% block title %}{{ course.code }} - oLearn{% endblock %}
+{% block title %}{{ course.code }}: {{ course.title }} | SIMAD oLearn{% endblock %}
 
 {% block header_title %}
-<a href="/courses.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.8rem;">&larr; Back</a>
-<h1 style="margin-top: 4px;">{{ course.code }}: {{ course.title }}</h1>
+<a href="{{ url_for('courses') }}" style="color: var(--text-muted); text-decoration: none; font-size: 0.85rem;">← My
+    Courses</a>
+<h1 style="margin-top: 4px; font-size: 1.3rem;">{{ course.code }}: {{ course.title }}</h1>
 {% endblock %}
 
 {% block content %}
-<div class="course-layout" style="display: grid; grid-template-columns: 280px 1fr; gap: 24px; margin-top: 20px;">
-    <!-- Course TOC Sidebar -->
-    <div class="card" style="padding: 20px; height: fit-content;">
-        <ul class="module-list" style="list-style: none; padding: 0;">
-            <li class="module-header"
-                style="font-weight: 700; color: var(--simad-blue); margin-bottom: 12px; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase;">
-                Course Content</li>
+<div style="display: grid; grid-template-columns: 280px 1fr; gap: 24px; margin-top: 20px;">
 
-            {% for mod in course.modules %}
-            <li style="margin-bottom: 8px;">
-                <a href="#" class="module-item {{ 'active' if loop.first else '' }}"
-                    style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #444; font-size: 0.9rem; padding: 8px; border-radius: 6px;">
-                    <span>📖</span> {{ mod.title }}
-                </a>
-            </li>
-            {% endfor %}
+    <!-- ─── Left: Course TOC ─────────────────────────────────────────────── -->
+    <div>
+        <div class="card" style="padding: 20px; position: sticky; top: 20px;">
+            <p style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+                      letter-spacing: 1.5px; color: var(--simad-blue); margin-bottom: 14px;">
+                Course Content
+            </p>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                {% for mod in course.modules %}
+                <li style="margin-bottom: 4px;">
+                    <a href="/course-detail.html?id={{ course.id }}&mod={{ mod.id }}"
+                        style="display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+                              border-radius: 7px; text-decoration: none; font-size: 0.88rem;
+                              transition: background 0.15s;
+                              {{ 'background: #e8f0fe; color: var(--simad-blue); font-weight: 600;' if active_module and active_module.id == mod.id else 'color: #444;' }}">
+                        <span>{{ '▶' if mod.content_type == 'video' else ('📄' if mod.content_type == 'pdf' else '📖')
+                            }}</span>
+                        {{ mod.title }}
+                    </a>
+                </li>
+                {% else %}
+                <li style="font-size: 0.85rem; color: #aaa; padding: 8px 10px;">No modules yet.</li>
+                {% endfor %}
+            </ul>
 
-            <li class="module-header"
-                style="font-weight: 700; color: var(--simad-blue); margin: 20px 0 12px 0; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase;">
-                Assessments</li>
-            {% for assign in course.assignments %}
-            <li style="margin-bottom: 8px;">
-                <a href="#"
-                    style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #444; font-size: 0.9rem; padding: 8px;">
-                    <span>📝</span> {{ assign.title }}
+            {% if course.assignments %}
+            <p style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+                      letter-spacing: 1.5px; color: var(--simad-blue); margin: 20px 0 14px;">
+                Assessments
+            </p>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                {% for assign in course.assignments %}
+                <li style="margin-bottom: 4px;">
+                    <a href="/assignment/{{ assign.id }}" style="display: flex; align-items: center; justify-content: space-between;
+                              gap: 8px; padding: 9px 10px; border-radius: 7px; text-decoration: none;
+                              font-size: 0.88rem; color: #444; transition: background 0.15s;">
+                        <span><span style="margin-right: 8px;">📝</span>{{ assign.title }}</span>
+                        {% if assign.id in submitted_ids %}
+                        <span style="font-size: 0.7rem; background: #dcfce7; color: #15803d;
+                                     padding: 2px 7px; border-radius: 20px; font-weight: 600;">Done</span>
+                        {% endif %}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            <!-- Instructor actions -->
+            {% if session.role in ['instructor', 'sys_admin'] %}
+            <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid #eee; display: grid; gap: 8px;">
+                <a href="/instructor/add_module/{{ course.id }}" class="btn-primary"
+                    style="text-align: center; font-size: 0.82rem; padding: 9px 12px; background: var(--simad-blue);">
+                    + Add Module
                 </a>
-            </li>
-            {% endfor %}
-        </ul>
+                <a href="/instructor/add_assignment/{{ course.id }}" class="btn-primary"
+                    style="text-align: center; font-size: 0.82rem; padding: 9px 12px; background: var(--simad-gold);">
+                    + Add Assignment
+                </a>
+                <a href="/announcements/create" class="btn-primary"
+                    style="text-align: center; font-size: 0.82rem; padding: 9px 12px; background: #6366f1;">
+                    📢 Post Notice
+                </a>
+            </div>
+            {% endif %}
+        </div>
     </div>
 
-    <!-- Main Dynamic Content -->
-    <div class="card" style="padding: 40px;">
-        {% if course.modules %}
-        <h2>{{ course.modules[0].title }}</h2>
-        <div
-            style="aspect-ratio: 16/9; background: #000; border-radius: 12px; margin: 24px 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
-            ▶
+    <!-- ─── Right: Active Module Content ────────────────────────────────── -->
+    <div>
+        {% if active_module %}
+        <div class="card" style="padding: 36px;">
+            <!-- Module header -->
+            <div style="margin-bottom: 28px;">
+                <span style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px;
+                             color: var(--simad-blue); font-weight: 600;">Module</span>
+                <h2 style="font-size: 1.4rem; margin-top: 6px;">{{ active_module.title }}</h2>
+            </div>
+
+            <!-- Video -->
+            {% if active_module.content_type == 'video' and active_module.content_url %}
+            <div style="aspect-ratio: 16/9; background: #000; border-radius: 12px;
+                        margin-bottom: 28px; overflow: hidden;">
+                {% if 'youtube.com' in active_module.content_url or 'youtu.be' in active_module.content_url %}
+                <iframe width="100%" height="100%" frameborder="0" allowfullscreen
+                    src="{{ active_module.content_url | replace('watch?v=', 'embed/') }}"></iframe>
+                {% else %}
+                <video controls style="width: 100%; height: 100%;">
+                    <source src="{{ active_module.content_url }}">
+                    Your browser does not support video playback.
+                </video>
+                {% endif %}
+            </div>
+
+            <!-- PDF -->
+            {% elif active_module.content_type == 'pdf' and active_module.content_url %}
+            <div style="margin-bottom: 28px; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">
+                <iframe src="{{ active_module.content_url }}" width="100%" height="600px"
+                    style="border: none;"></iframe>
+            </div>
+            <a href="{{ active_module.content_url }}" target="_blank" class="btn-primary"
+                style="display: inline-block; padding: 10px 20px; margin-bottom: 24px;">
+                📄 Open Document
+            </a>
+
+            <!-- External Link -->
+            {% elif active_module.content_type == 'link' and active_module.content_url %}
+            <div style="background: #f0f7ff; border: 1px solid #bfdbfe; border-radius: 10px;
+                        padding: 24px; margin-bottom: 28px; text-align: center;">
+                <p style="font-size: 1rem; margin-bottom: 16px; color: #444;">External Resource</p>
+                <a href="{{ active_module.content_url }}" target="_blank" class="btn-primary"
+                    style="padding: 12px 28px;">
+                    🔗 Open Resource →
+                </a>
+            </div>
+
+            <!-- Text / Notes -->
+            {% else %}
+            <div style="line-height: 1.9; color: #444; font-size: 1rem; margin-bottom: 28px;
+                        white-space: pre-wrap; background: #f8f9ff; padding: 24px;
+                        border-radius: 10px; border-left: 4px solid var(--simad-blue);">
+                {{ active_module.content_url or 'No content has been added to this module yet.' }}
+            </div>
+            {% endif %}
+
+            <!-- Module navigation -->
+            <div style="display: flex; justify-content: space-between; padding-top: 20px;
+                        border-top: 1px solid #eee;">
+                {% set ns = namespace(prev=None, next=None, found=false) %}
+                {% for mod in course.modules %}
+                {% if ns.found and not ns.next %} {% set ns.next = mod %} {% endif %}
+                {% if mod.id == active_module.id %} {% set ns.found = true %} {% endif %}
+                {% if not ns.found %} {% set ns.prev = mod %} {% endif %}
+                {% endfor %}
+
+                {% if ns.prev %}
+                <a href="/course-detail.html?id={{ course.id }}&mod={{ ns.prev.id }}"
+                    style="text-decoration: none; color: var(--simad-blue); font-size: 0.9rem; font-weight: 500;">
+                    ← {{ ns.prev.title }}
+                </a>
+                {% else %}<span></span>{% endif %}
+
+                {% if ns.next %}
+                <a href="/course-detail.html?id={{ course.id }}&mod={{ ns.next.id }}" class="btn-primary"
+                    style="padding: 10px 20px; font-size: 0.88rem;">
+                    Next: {{ ns.next.title }} →
+                </a>
+                {% endif %}
+            </div>
         </div>
-        <div style="line-height: 1.8; color: #555;">
-            <p>Welcome to the first module of {{ course.title }}. This module covers the core concepts required for your
-                upcoming mid-term assessment.</p>
-        </div>
+
         {% else %}
-        <div style="text-align: center; color: #999; padding: 60px;">
-            <p>No content has been published for this course yet.</p>
+        <div class="card" style="padding: 60px; text-align: center; color: #999;">
+            <div style="font-size: 3.5rem; margin-bottom: 20px;">📭</div>
+            <h2 style="color: #bbb;">No Content Yet</h2>
+            <p style="margin-top: 8px;">No modules have been published for this course.</p>
+            {% if session.role in ['instructor', 'sys_admin'] %}
+            <a href="/instructor/add_module/{{ course.id }}" class="btn-primary"
+                style="display: inline-block; margin-top: 24px; padding: 12px 28px;">+ Add First Module</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Announcements -->
+        {% if announcements %}
+        <div class="card" style="margin-top: 20px; padding: 24px;">
+            <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 16px; color: var(--simad-blue);">
+                📢 Course Announcements
+            </h3>
+            {% for ann in announcements %}
+            <div style="padding: 14px 16px; border-radius: 8px; margin-bottom: 10px;
+                        background: {{ '#fffbeb' if ann.is_pinned else '#f9fafb' }};
+                        border-left: 3px solid {{ 'var(--simad-gold)' if ann.is_pinned else '#ddd' }};">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                    <p style="font-weight: 600; font-size: 0.9rem;">
+                        {{ '📌 ' if ann.is_pinned }}{{ ann.title }}
+                    </p>
+                    <span style="font-size: 0.75rem; color: #aaa; white-space: nowrap; margin-left: 12px;">
+                        {{ ann.created_at.strftime('%d %b') }}
+                    </span>
+                </div>
+                <p style="font-size: 0.85rem; color: #555;">{{ ann.body }}</p>
+            </div>
+            {% endfor %}
         </div>
         {% endif %}
     </div>
+
 </div>
 {% endblock %}

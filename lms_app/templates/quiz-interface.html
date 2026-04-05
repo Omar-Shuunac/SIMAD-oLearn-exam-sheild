@@ -4,224 +4,493 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIMAD Exam Shield - Multi-Type Session</title>
+    <title>{{ exam_sess.title }} — SIMAD Exam Shield</title>
+    <meta name="robots" content="noindex">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <script src="{{ url_for('static', filename='security.js') }}"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            background: #fdfdfd;
+            background: #f4f6f9;
+            user-select: none;
+            overflow-x: hidden;
         }
 
         .secure-header {
-            background: #fff;
+            background: linear-gradient(90deg, #1a3560, #0f2440);
             border-bottom: 2px solid var(--danger);
-            padding: 15px 40px;
+            padding: 14px 36px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: var(--shadow-sm);
             position: sticky;
             top: 0;
             z-index: 1000;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .brand-shield {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .brand-shield span {
+            color: var(--danger);
+        }
+
+        #timer {
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: white;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 6px 20px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            transition: color 0.3s, background 0.3s;
+        }
+
+        #timer.warning {
+            color: #fbbf24;
+            border-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+        }
+
+        #timer.danger {
+            color: #f87171;
+            border-color: #f87171;
+            background: rgba(248, 113, 113, 0.1);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .user-info {
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 0.85rem;
+        }
+
+        .flag-banner {
+            background: #fff7ed;
+            border-bottom: 2px solid #f97316;
+            color: #9a3412;
+            padding: 10px 36px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            display: none;
+            text-align: center;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
+        .q-nav {
+            display: flex;
+            gap: 6px;
+            padding: 16px 36px;
+            background: white;
+            border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+        }
+
+        .q-dot {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 2px solid #ddd;
+            background: white;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .q-dot.active {
+            border-color: var(--simad-blue);
+            background: var(--simad-blue);
+            color: white;
+        }
+
+        .q-dot.answered {
+            border-color: var(--success);
+            background: #dcfce7;
+            color: #15803d;
         }
 
         .question-card {
             display: none;
+            max-width: 900px;
+            margin: 32px auto;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
             padding: 40px;
-            max-width: 850px;
-            margin: 40px auto;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: var(--shadow-md);
-            border: 1px solid #eee;
+            animation: fadeIn 0.25s ease;
         }
 
         .question-card.active {
             display: block;
-            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
         }
 
         .mcq-option {
-            display: block;
-            padding: 15px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            margin-bottom: 10px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s;
         }
 
         .mcq-option:hover {
-            background: #f9f9f9;
             border-color: var(--simad-blue);
+            background: #f5f8ff;
         }
 
         .mcq-option.selected {
             border-color: var(--simad-blue);
-            background: #f0f7ff;
+            background: #eef3ff;
         }
 
-        .matching-row {
+        .mcq-option .dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #ccc;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+
+        .mcq-option.selected .dot {
+            border-color: var(--simad-blue);
+            background: var(--simad-blue);
+        }
+
+        .footer-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            border-top: 1px solid #eee;
+            padding: 16px 36px;
             display: flex;
-            gap: 20px;
+            justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+            z-index: 900;
         }
 
-        #timer {
-            font-family: monospace;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--danger);
-            background: #fff5f5;
-            padding: 5px 15px;
-            border-radius: 50px;
-            border: 1px solid #feb2b2;
+        .progress-track {
+            width: 200px;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill-bar {
+            height: 100%;
+            background: var(--simad-blue);
+            width: 0%;
+            transition: width 0.4s ease;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="secure-header">
-        <div class="brand" style="margin: 0; font-size: 1.2rem;">🛡️ SHIELD <span
-                style="color: var(--danger);">SESSION</span></div>
-        <div id="timer">60:00</div>
-        <div style="font-size: 0.85rem; font-weight: 600; color: #555;">SECURITY ACTIVE ● {{ session.user_name }}</div>
+    <!-- Flag banner (hidden by default) -->
+    <div class="flag-banner" id="flagBanner">
+        ⚠️ Focus-loss detected. This incident has been logged automatically.
     </div>
 
-    <main style="padding-bottom: 100px;">
+    <!-- Secure Header -->
+    <div class="secure-header">
+        <div class="brand-shield">🛡️ SHIELD <span>SESSION</span></div>
+        <div id="timer">--:--</div>
+        <div class="user-info">
+            SECURITY ACTIVE &nbsp;●&nbsp; {{ session.user_name }}
+        </div>
+    </div>
+
+    <!-- Question navigator -->
+    {% if questions %}
+    <div class="q-nav" id="qNav">
+        {% for q in questions %}
+        <button class="q-dot {{ 'active' if loop.first else '' }}" id="dot{{ loop.index }}"
+            onclick="jumpTo({{ loop.index }})">{{ loop.index }}</button>
+        {% endfor %}
+        <span style="flex: 1;"></span>
+        <span style="font-size: 0.85rem; color: #888; align-self: center;">
+            {{ questions | length }} questions &nbsp;·&nbsp;
+            <span id="answeredCount">0</span> answered
+        </span>
+    </div>
+    {% endif %}
+
+    <!-- Question cards -->
+    <form id="examForm" action="/exam/submit/{{ attempt.id }}" method="POST" style="padding-bottom: 100px;">
+
         {% for q in questions %}
         <div class="question-card {{ 'active' if loop.first else '' }}" id="q{{ loop.index }}">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                <span class="badge badge-secondary">Item {{ loop.index }} of {{ questions|length }}</span>
-                <span style="font-weight: 600; color: var(--simad-blue);">{{ q.points }} MARKS</span>
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
+                <span class="badge badge-secondary">Question {{ loop.index }} / {{ questions | length }}</span>
+                <span style="font-weight: 600; color: var(--simad-blue); font-size: 0.9rem;">
+                    {{ q.points }} mark{{ 's' if q.points != 1 }}
+                </span>
             </div>
 
-            <h2 style="font-size: 1.4rem; line-height: 1.5; margin-bottom: 30px;">{{ q.text }}</h2>
+            <h2 style="font-size: 1.25rem; line-height: 1.6; margin-bottom: 28px; color: #1e293b;">
+                {{ q.text }}
+            </h2>
 
-            <!-- Type-Specific Rendering -->
+            <!-- MCQ -->
             {% if q.q_type == 'multiple_choice' %}
             <div class="options-container">
                 {% for choice in q.choices %}
-                <label class="mcq-option" onclick="selectMCQ(this)">
-                    <input type="radio" name="q{{ q.id }}" style="margin-right: 12px;">
-                    {{ choice.text }}
+                <label
+                    class="mcq-option {{ 'selected' if saved_answers.get(q.id | string) == choice.id | string else '' }}"
+                    id="opt{{ q.id }}_{{ choice.id }}" onclick="selectMCQ(this, '{{ q.id }}', '{{ choice.id }}')">
+                    <div class="dot"></div>
+                    <span>{{ choice.text }}</span>
+                    <input type="radio" name="q_{{ q.id }}" value="{{ choice.id }}" style="display:none;" {{ 'checked'
+                        if saved_answers.get(q.id | string)==choice.id | string }}>
                 </label>
                 {% endfor %}
             </div>
+
+            <!-- Short Answer -->
             {% elif q.q_type == 'short_answer' %}
-            <textarea class="form-control" rows="8" placeholder="Type your academic response here..."
-                style="width: 100%; padding: 15px; border-radius: 8px; border: 1px solid #ddd;"></textarea>
+            <textarea name="q_{{ q.id }}" rows="8" class="form-control" placeholder="Type your academic response here…"
+                style="width: 100%; padding: 16px; font-size: 0.95rem; line-height: 1.7;"
+                onchange="saveShortAnswer('{{ q.id }}', this.value)">{{ saved_answers.get(q.id | string, '') }}</textarea>
+
+            <!-- Matching -->
             {% elif q.q_type == 'matching' %}
-            <div style="background: #f9f9f9; padding: 20px; border-radius: 10px;">
-                <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Connect terms on the left to candidates
-                    on the right.</p>
-                <div class="matching-row">
-                    <div style="flex: 1; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 4px;">
-                        Asymmetric Cryptography</div>
-                    <span>➔</span>
-                    <select class="form-control" style="flex: 1;">
-                        <option>Select Match...</option>
-                        <option>RSA</option>
-                        <option>AES</option>
-                    </select>
-                </div>
-                <div class="matching-row">
-                    <div style="flex: 1; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 4px;">
-                        Symmetric Cryptography</div>
-                    <span>➔</span>
-                    <select class="form-control" style="flex: 1;">
-                        <option>Select Match...</option>
-                        <option>RSA</option>
-                        <option>AES</option>
-                    </select>
-                </div>
-            </div>
-            {% elif q.q_type == 'drag_drop' %}
-            <div
-                style="border: 2px dashed #ddd; padding: 40px; text-align: center; border-radius: 12px; background: #fafafa;">
-                <p>Drag items to rank security priority:</p>
-                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+            <div style="background: #f9fafb; padding: 20px; border-radius: 10px;">
+                <p style="font-size: 0.85rem; color: #666; margin-bottom: 16px;">
+                    Connect the terms on the left with the correct options.
+                </p>
+                {% for choice in q.choices %}
+                <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 10px;">
                     <div
-                        style="padding: 10px 20px; background: white; border: 1px solid #eee; box-shadow: var(--shadow-sm); cursor: grab;">
-                        Encryption</div>
-                    <div
-                        style="padding: 10px 20px; background: white; border: 1px solid #eee; box-shadow: var(--shadow-sm); cursor: grab;">
-                        Hashing</div>
+                        style="flex: 1; padding: 10px 14px; background: white; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem;">
+                        {{ choice.text }}
+                    </div>
+                    <span style="color: #999;">→</span>
+                    <input type="text" name="q_{{ q.id }}_match_{{ loop.index }}" class="form-control" style="flex: 1;"
+                        placeholder="Answer…">
                 </div>
+                {% endfor %}
             </div>
             {% endif %}
         </div>
         {% endfor %}
 
         {% if not questions %}
-        <div class="card" style="text-align: center; padding: 80px; max-width: 600px; margin: 60px auto;">
-            <h3>Session Empty</h3>
-            <p>Wait for instructor to publish items.</p>
-            <button class="btn-primary" onclick="window.location.href='/index.html'">Back to oLearn</button>
+        <div
+            style="text-align: center; padding: 80px; max-width: 600px; margin: 60px auto; background: white; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,0.07);">
+            <div style="font-size: 3rem; margin-bottom: 16px;">📭</div>
+            <h3>No Questions Yet</h3>
+            <p style="color: #888; margin-top: 8px;">The exam author hasn't published questions.</p>
         </div>
         {% endif %}
-    </main>
 
-    <div
-        style="position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #eee; padding: 20px; display: flex; justify-content: center; gap: 20px; box-shadow: 0 -5px 15px rgba(0,0,0,0.05);">
-        <button class="btn-primary" id="prevBtn" style="background: #eee; color: #333;" onclick="prevQuestion()"
-            disabled>&larr; Back</button>
-        <div
-            style="width: 200px; background: #eee; height: 8px; border-radius: 10px; align-self: center; overflow: hidden;">
-            <div id="progressFill"
-                style="width: {{ (1 / questions|length * 100) if questions else 0 }}%; height: 100%; background: var(--simad-blue); transition: width 0.3s ease;">
+        <!-- Footer nav -->
+        <div class="footer-bar">
+            <button type="button" class="btn-primary" id="prevBtn"
+                style="background: #eee; color: #333; padding: 10px 24px;" onclick="prevQ()" disabled>← Back</button>
+
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="progress-track">
+                    <div class="progress-fill-bar" id="pFill"></div>
+                </div>
+                <span id="progressLabel" style="font-size: 0.85rem; color: #888;"></span>
+            </div>
+
+            <div>
+                <button type="button" class="btn-primary" id="nextBtn" style="padding: 10px 24px;"
+                    onclick="nextQ()">Next →</button>
+                <button type="submit" id="submitBtn" class="btn-primary"
+                    style="display: none; background: var(--success); padding: 10px 24px;"
+                    onclick="return confirmSubmit()">
+                    ✓ Submit Exam
+                </button>
             </div>
         </div>
-        <button class="btn-primary" id="nextBtn" onclick="nextQuestion()">Next Item &rarr;</button>
-        <button class="btn-primary" id="submitBtn" onclick="submitExam()"
-            style="display: none; background: var(--success);">Confirm Submission</button>
-    </div>
+    </form>
 
     <script>
+        const TOTAL = {{ questions | length }};
+        const ATTEMPT_ID = {{ attempt.id }};
         let currentIdx = 1;
-        const total = {{ questions| length }};
+        const answered = new Set();
 
-        function selectMCQ(el) {
-            const container = el.parentElement;
-            container.querySelectorAll('.mcq-option').forEach(opt => opt.classList.remove('selected'));
-            el.classList.add('selected');
-            el.querySelector('input').checked = true;
+        // Restore already-answered from server
+        {% for q in questions %}
+        {% if saved_answers.get(q.id | string) %}
+        answered.add({{ loop.index }});
+        {% endif %}
+        {% endfor %}
+
+        // ── Timer ──────────────────────────────────────────────────────────────────
+        let timeLeft = {{ remaining_secs }};
+        const timerEl = document.getElementById('timer');
+
+        function formatTime(s) {
+            const m = Math.floor(s / 60), sec = s % 60;
+            return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
         }
 
-        function showQuestion(n) {
-            document.querySelectorAll('.question-card').forEach(q => q.classList.remove('active'));
-            const target = document.getElementById(`q${n}`);
-            if (target) target.classList.add('active');
+        const timerInterval = setInterval(() => {
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                timerEl.textContent = '00:00';
+                document.getElementById('examForm').submit();
+                return;
+            }
+            timeLeft--;
+            timerEl.textContent = formatTime(timeLeft);
+            if (timeLeft <= 300 && timeLeft > 60) timerEl.className = 'warning';
+            if (timeLeft <= 60) timerEl.className = 'danger';
+        }, 1000);
+        timerEl.textContent = formatTime(timeLeft);
+
+        // ── Anti-cheat: focus loss detection ───────────────────────────────────────
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) logFlag('tab_switch');
+        });
+        window.addEventListener('blur', () => logFlag('window_blur'));
+
+        function logFlag(type) {
+            document.getElementById('flagBanner').style.display = 'block';
+            setTimeout(() => { document.getElementById('flagBanner').style.display = 'none'; }, 4000);
+            // Log server-side
+            fetch('/api/log_flag', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ attempt_id: ATTEMPT_ID, flag_type: type, severity: 'medium' })
+            }).catch(() => { });
+        }
+
+        // ── MCQ selection + auto-save ───────────────────────────────────────────────
+        function selectMCQ(el, qId, choiceId) {
+            const container = el.closest('.options-container');
+            container.querySelectorAll('.mcq-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            el.querySelector('input[type=radio]').checked = true;
+
+            const qIdx = getQIdx(qId);
+            answered.add(qIdx);
+            updateUI();
+
+            // Auto-save
+            fetch('/api/save_answer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ attempt_id: ATTEMPT_ID, q_id: qId, answer: choiceId })
+            }).catch(() => { });
+        }
+
+        function saveShortAnswer(qId, val) {
+            const qIdx = getQIdx(qId);
+            if (val.trim()) answered.add(qIdx); else answered.delete(qIdx);
+            updateUI();
+            fetch('/api/save_answer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ attempt_id: ATTEMPT_ID, q_id: qId, answer: val })
+            }).catch(() => { });
+        }
+
+        function getQIdx(qId) {
+            // Map q.id → loop index (need data attr)
+            const cards = document.querySelectorAll('.question-card');
+            for (let i = 0; i < cards.length; i++) {
+                if (cards[i].id === `q${i + 1}`) {
+                    // check if contains an element with the qId
+                }
+            }
+            return parseInt(qId) || 0; // fallback
+        }
+
+        // ── Navigation ──────────────────────────────────────────────────────────────
+        function showQ(n) {
+            document.querySelectorAll('.question-card').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.q-dot').forEach(d => d.classList.remove('active'));
+            document.getElementById(`q${n}`).classList.add('active');
+            document.getElementById(`dot${n}`).classList.add('active');
+            currentIdx = n;
 
             document.getElementById('prevBtn').disabled = (n === 1);
-            if (n === total) {
-                document.getElementById('nextBtn').style.display = 'none';
-                document.getElementById('submitBtn').style.display = 'block';
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            if (n === TOTAL) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'inline-block';
             } else {
-                document.getElementById('nextBtn').style.display = 'block';
-                document.getElementById('submitBtn').style.display = 'none';
+                nextBtn.style.display = 'inline-block';
+                submitBtn.style.display = 'none';
             }
-            document.getElementById('progressFill').style.width = (n / total * 100) + '%';
+            updateUI();
         }
 
-        function nextQuestion() { if (currentIdx < total) { currentIdx++; showQuestion(currentIdx); } }
-        function prevQuestion() { if (currentIdx > 1) { currentIdx--; showQuestion(currentIdx); } }
-
-        function submitExam() {
-            if (confirm("Submit Assessment?")) window.location.href = "{{ url_for('dashboard') }}";
+        function updateUI() {
+            // Progress bar
+            document.getElementById('pFill').style.width = (currentIdx / TOTAL * 100) + '%';
+            document.getElementById('progressLabel').textContent = `${currentIdx} / ${TOTAL}`;
+            // Answered count
+            document.getElementById('answeredCount').textContent = answered.size;
+            // Mark answered dots green
+            answered.forEach(i => {
+                const dot = document.getElementById(`dot${i}`);
+                if (dot) { dot.classList.add('answered'); }
+            });
         }
 
-        let timeLeft = 60 * 60;
-        setInterval(() => {
-            if (timeLeft <= 0) return;
-            timeLeft--;
-            const m = Math.floor(timeLeft / 60);
-            const s = timeLeft % 60;
-            document.getElementById('timer').innerText = `${m}:${s.toString().padStart(2, '0')}`;
-        }, 1000);
+        function nextQ() { if (currentIdx < TOTAL) showQ(currentIdx + 1); }
+        function prevQ() { if (currentIdx > 1) showQ(currentIdx - 1); }
+        function jumpTo(n) { showQ(n); }
+
+        function confirmSubmit() {
+            const unanswered = TOTAL - answered.size;
+            if (unanswered > 0) {
+                return confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`);
+            }
+            return confirm('Are you sure you want to submit your exam?');
+        }
+
+        // Init
+        showQ(1);
     </script>
 </body>
 

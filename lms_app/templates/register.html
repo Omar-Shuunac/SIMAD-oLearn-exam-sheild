@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account - SIMAD oLearn</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, var(--simad-blue) 0%, #003366 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .register-card {
+            background: white;
+            padding: 44px 40px;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .register-header { text-align: center; margin-bottom: 32px; }
+        .error-box {
+            background: #fff0f0; border: 1px solid #fca5a5;
+            color: #b91c1c; padding: 12px 16px;
+            border-radius: 8px; font-size: 0.9rem; margin-bottom: 20px;
+        }
+        .success-box {
+            background: #f0fdf4; border: 1px solid #86efac;
+            color: #15803d; padding: 12px 16px;
+            border-radius: 8px; font-size: 0.9rem; margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-card">
+        <div class="register-header">
+            <div class="brand" style="justify-content: center; margin-bottom: 10px;">
+                SIMAD <span>oLearn</span>
+            </div>
+            <p style="color: #666; font-size: 0.9rem;">Create your student account</p>
+        </div>
+
+        {% if error %}
+        <div class="error-box">⚠️ {{ error }}</div>
+        {% endif %}
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div class="{{ 'success-box' if category == 'success' else 'error-box' }}">{{ message }}</div>
+        {% endfor %}
+        {% endwith %}
+
+        <form action="/register" method="POST" id="registerForm">
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="name" id="name" class="form-control"
+                       placeholder="e.g. Mohamed Ali Hassan" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" id="reg_email" class="form-control"
+                       placeholder="yourname@simad.edu.so" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" id="reg_password" class="form-control"
+                       placeholder="Minimum 8 characters" required minlength="8">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Confirm Password</label>
+                <input type="password" name="confirm_password" id="confirm_password" class="form-control"
+                       placeholder="Repeat your password" required>
+            </div>
+
+            <button type="submit" class="btn-primary" id="submitBtn"
+                    style="width: 100%; margin-top: 8px; padding: 14px;">
+                Create Account →
+            </button>
+        </form>
+
+        <p style="text-align: center; margin-top: 20px; font-size: 0.9rem; color: #666;">
+            Already have an account?
+            <a href="/login" style="color: var(--simad-blue); font-weight: 600;">Sign In</a>
+        </p>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const pw  = document.getElementById('reg_password').value;
+            const cpw = document.getElementById('confirm_password').value;
+            if (pw !== cpw) {
+                e.preventDefault();
+                alert('Passwords do not match.');
+            }
+        });
+    </script>
+</body>
+</html>

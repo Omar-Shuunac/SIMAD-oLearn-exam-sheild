@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Post Announcement | SIMAD oLearn{% endblock %}
+{% block header_title %}Post Announcement{% endblock %}
+
+{% block content %}
+<div style="max-width: 680px; margin: 32px auto;">
+    <div class="card">
+        <h2 style="font-size: 1.1rem; margin-bottom: 8px;">📢 New Announcement</h2>
+        <p style="color: #888; font-size: 0.85rem; margin-bottom: 28px;">
+            Post a notice to a specific course or the entire platform.
+        </p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div style="padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;
+            background: {{ '#f0fdf4' if category == 'success' else '#fff0f0' }};
+            border: 1px solid {{ '#86efac' if category == 'success' else '#fca5a5' }};
+            color: {{ '#15803d' if category == 'success' else '#b91c1c' }}; font-size: 0.9rem;">{{ message }}</div>
+        {% endfor %}
+        {% endwith %}
+
+        <form action="/announcements/create" method="POST" style="display: grid; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Title</label>
+                <input type="text" name="title" class="form-control" required placeholder="e.g. Mid-Term Exam Schedule">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Message</label>
+                <textarea name="body" class="form-control" rows="7" required
+                    placeholder="Write your announcement here..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Audience</label>
+                <select name="course_id" class="form-control">
+                    <option value="">🌐 All Students (Platform-wide)</option>
+                    {% for course in courses %}
+                    <option value="{{ course.id }}">📚 {{ course.code }} — {{ course.title }}</option>
+                    {% endfor %}
+                </select>
+                <p style="font-size: 0.8rem; color: #888; margin-top: 4px;">
+                    "All Students" posts a global notice visible on every student's dashboard.
+                </p>
+            </div>
+
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem;">
+                    <input type="checkbox" name="is_pinned" value="1"
+                        style="width: 18px; height: 18px; cursor: pointer;">
+                    📌 Pin this announcement (appears at top)
+                </label>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <a href="{{ url_for('dashboard') }}" style="padding: 12px 24px; border: 1px solid #ddd; border-radius: 8px;
+                          background: white; text-decoration: none; color: #444; font-size: 0.9rem;">Cancel</a>
+                <button type="submit" class="btn-primary" style="padding: 12px 32px;">Post Announcement →</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

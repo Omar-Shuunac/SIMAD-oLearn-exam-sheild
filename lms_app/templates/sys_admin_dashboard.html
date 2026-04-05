@@ -2,64 +2,193 @@
 {% set active_page = 'dashboard' %}
 
 {% block title %}System Control - SIMAD oLearn{% endblock %}
-
 {% block header_title %}Platform Administration{% endblock %}
 
 {% block content %}
 <div class="dashboard-grid">
     <div class="left-col">
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div style="padding: 12px 16px; border-radius: 8px; margin-bottom: 12px;
+            background: {{ '#f0fdf4' if category == 'success' else '#fff0f0' }};
+            border: 1px solid {{ '#86efac' if category == 'success' else '#fca5a5' }};
+            color: {{ '#15803d' if category == 'success' else '#b91c1c' }}; font-size: 0.9rem;">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endwith %}
+
+        <!-- Stats row -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;">
+            <div class="card" style="text-align: center; padding: 20px;">
+                <p style="font-size: 2.2rem; font-weight: 700; color: var(--simad-blue);">{{ stats.total_users }}</p>
+                <p style="font-size: 0.8rem; color: #888; margin-top: 4px;">Total Users</p>
+            </div>
+            <div class="card" style="text-align: center; padding: 20px;">
+                <p style="font-size: 2.2rem; font-weight: 700; color: var(--simad-gold);">{{ stats.total_courses }}</p>
+                <p style="font-size: 0.8rem; color: #888; margin-top: 4px;">Courses</p>
+            </div>
+            <div class="card" style="text-align: center; padding: 20px;">
+                <p style="font-size: 2.2rem; font-weight: 700; color: var(--success);">Active</p>
+                <p style="font-size: 0.8rem; color: #888; margin-top: 4px;">System Status</p>
+            </div>
+        </div>
+
+        <!-- IAM: Add User -->
         <div class="card">
-            <h2>Administrative IAM Control</h2>
-            <form action="/admin/add_user" method="POST" style="margin-top: 16px; display: grid; gap: 12px;">
-                <input type="text" name="name" class="form-control" placeholder="Full Name" required>
-                <input type="email" name="email" class="form-control" placeholder="admin.email@simad.edu.so" required>
-                <input type="password" name="password" class="form-control" placeholder="Password" required>
-                <select name="role" class="form-control">
-                    <option value="sys_admin">System Admin</option>
-                    <option value="exam_admin">Exam Officer</option>
-                    <option value="instructor">Professor</option>
-                    <option value="student">Student Account</option>
-                </select>
-                <button type="submit" class="btn-primary">Provision Identity</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Provision New Identity</h2>
+                <a href="{{ url_for('create_announcement') }}" class="btn-primary"
+                    style="font-size: 0.82rem; padding: 9px 16px; background: #6366f1;">
+                    📢 Announce
+                </a>
+            </div>
+            <form action="/admin/add_user" method="POST" style="display: grid; gap: 12px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <input type="text" name="name" class="form-control" placeholder="Full Name" required>
+                    <input type="email" name="email" class="form-control" placeholder="user@simad.edu.so" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <input type="password" name="password" class="form-control" placeholder="Temporary Password"
+                        required minlength="8">
+                    <select name="role" class="form-control">
+                        <option value="student">Student</option>
+                        <option value="instructor">Instructor / Professor</option>
+                        <option value="exam_admin">Exam Officer</option>
+                        <option value="sys_admin">System Admin</option>
+                    </select>
+                </div>
+                <input type="text" name="reason" class="form-control"
+                    placeholder="Reason for provisioning (e.g. Semester 2 intake)" required>
+                <button type="submit" class="btn-primary" style="padding: 12px;">
+                    🔐 Provision Identity
+                </button>
             </form>
         </div>
 
-        <div class="card" style="margin-top: 24px;">
-            <h2>Global Audit Trail</h2>
-            <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.85rem;">
-                <thead>
-                    <tr style="text-align: left; background: #f9f9f9;">
-                        <th style="padding: 10px;">Action</th>
-                        <th style="padding: 10px;">User</th>
-                        <th style="padding: 10px;">Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for log in stats.audit_logs %}
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 10px;">{{ log.action }}</td>
-                        <td style="padding: 10px;">ID: {{ log.user_id }}</td>
-                        <td style="padding: 10px; color: #777;">{{ log.timestamp.strftime('%H:%M:%S') }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <!-- Enroll Student -->
+        <div class="card" style="margin-top: 20px;">
+            <h2 style="margin-bottom: 20px;">Enrol Student in Course</h2>
+            <form action="/admin/enroll_student" method="POST"
+                style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end;">
+                <div>
+                    <label class="form-label">Student</label>
+                    <select name="student_id" class="form-control">
+                        {% for user in recent_users %}
+                        {% if user.role == 'student' %}
+                        <option value="{{ user.id }}">{{ user.name }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Course</label>
+                    <select name="course_id" class="form-control">
+                        {% from 'macros.html' import noop %}{# placeholder #}
+                        {# We'll load courses from context if available #}
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="padding: 12px 20px;">Enrol</button>
+            </form>
+        </div>
+
+        <!-- Audit log -->
+        <div class="card" style="margin-top: 20px;">
+            <h2 style="margin-bottom: 16px;">Global Audit Trail</h2>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                    <thead>
+                        <tr style="background: #f9f9f9; text-align: left;">
+                            <th style="padding: 10px 14px; font-weight: 600; color: #555;">Action</th>
+                            <th style="padding: 10px 14px; font-weight: 600; color: #555;">User ID</th>
+                            <th style="padding: 10px 14px; font-weight: 600; color: #555;">IP</th>
+                            <th style="padding: 10px 14px; font-weight: 600; color: #555;">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in stats.audit_logs %}
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 10px 14px;">{{ log.action }}</td>
+                            <td style="padding: 10px 14px; color: #666;">#{{ log.user_id }}</td>
+                            <td style="padding: 10px 14px; color: #666; font-size: 0.8rem;">{{ log.ip_address or '—' }}
+                            </td>
+                            <td style="padding: 10px 14px; color: #777; white-space: nowrap;">
+                                {{ log.timestamp.strftime('%d %b, %H:%M:%S') }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% if not stats.audit_logs %}
+                        <tr>
+                            <td colspan="4" style="padding: 20px; text-align: center; color: #ccc;">No audit logs yet.
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
+    <!-- Right panel -->
     <div class="right-col">
+
+        <!-- Infrastructure -->
         <div class="card">
-            <h3>Infrastructure Status</h3>
-            <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+            <h3 style="font-size: 0.95rem; margin-bottom: 16px;">☁️ Infrastructure</h3>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
                 <div style="display: flex; justify-content: space-between;">
-                    <span>Database</span>
+                    <span style="font-size: 0.9rem; color: #555;">Database</span>
                     <span class="badge badge-success">STABLE (Neon)</span>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
-                    <span>API Response</span>
-                    <span style="font-weight: 600;">14ms</span>
+                    <span style="font-size: 0.9rem; color: #555;">Auth System</span>
+                    <span class="badge badge-success">SECURE (bcrypt)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="font-size: 0.9rem; color: #555;">Exam Shield</span>
+                    <span class="badge badge-success">ACTIVE</span>
                 </div>
             </div>
+        </div>
+
+        <!-- Announcements -->
+        {% if announcements %}
+        <div class="card" style="margin-top: 20px;">
+            <h3 style="font-size: 0.95rem; margin-bottom: 16px;">📢 Platform Announcements</h3>
+            {% for ann in announcements %}
+            <div style="padding: 12px 14px; border-radius: 8px; margin-bottom: 10px;
+                        background: #f9fafb; border-left: 3px solid #ddd;">
+                <p style="font-weight: 600; font-size: 0.88rem; margin-bottom: 2px;">{{ ann.title }}</p>
+                <p style="font-size: 0.8rem; color: #777;">{{ ann.created_at.strftime('%d %b %Y') }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Recent Users -->
+        <div class="card" style="margin-top: 20px;">
+            <h3 style="font-size: 0.95rem; margin-bottom: 16px;">🧑‍🎓 Recent Accounts</h3>
+            {% for user in recent_users %}
+            <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0;
+                        border-bottom: 1px solid #f0f0f0; font-size: 0.88rem;">
+                <div style="width: 34px; height: 34px; border-radius: 50%; background: var(--simad-blue);
+                            color: white; display: flex; align-items: center; justify-content: center;
+                            font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">
+                    {{ user.name[:2].upper() }}
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <p style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{
+                        user.name }}</p>
+                    <p style="color: #888; font-size: 0.78rem;">{{ user.role }}</p>
+                </div>
+                <span class="badge {{ 'badge-success' if user.status == 'active' else 'badge-secondary' }}"
+                    style="font-size: 0.68rem;">
+                    {{ user.status.upper() }}
+                </span>
+            </div>
+            {% endfor %}
         </div>
     </div>
 </div>

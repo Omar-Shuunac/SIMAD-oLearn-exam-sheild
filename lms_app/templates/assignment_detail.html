@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% block title %}{{ assignment.course.code if assignment.course else '' }} — {{ assignment.title }} | SIMAD oLearn{%
+endblock %}
+
+{% block header_title %}
+<a href="/course-detail.html?id={{ assignment.course_id }}"
+    style="color: var(--text-muted); text-decoration: none; font-size: 0.85rem;">← Back to Course</a>
+<h1 style="margin-top: 4px; font-size: 1.4rem;">{{ assignment.title }}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid" style="margin-top: 20px;">
+
+    <!-- Left: Instructions + Submission Form -->
+    <div class="left-col">
+        <div class="card">
+            <!-- Header -->
+            <div
+                style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <h2 style="font-size: 1.1rem; margin-bottom: 6px;">Instructions</h2>
+                    {% if assignment.due_date %}
+                    <p style="color: #666; font-size: 0.9rem;">
+                        📅 Due: <strong>{{ assignment.due_date.strftime('%d %b %Y, %I:%M %p') }}</strong>
+                    </p>
+                    {% else %}
+                    <p style="color: #999; font-size: 0.9rem;">No due date set.</p>
+                    {% endif %}
+                </div>
+                <span class="badge badge-warning" style="font-size: 0.9rem; padding: 6px 14px;">
+                    {{ assignment.points }} Points
+                </span>
+            </div>
+
+            <!-- Description -->
+            <div
+                style="line-height: 1.8; color: var(--text-dark); margin-bottom: 32px; padding: 20px; background: #f8f9ff; border-radius: 10px; border-left: 4px solid var(--simad-blue);">
+                {% if assignment.description %}
+                {{ assignment.description | replace('\n', '<br>') | safe }}
+                {% else %}
+                <p style="color: #999;">No instructions provided for this assignment.</p>
+                {% endif %}
+            </div>
+
+            <!-- Flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+            <div style="padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem;
+                background: {{ '#f0fdf4' if category == 'success' else '#fff0f0' }};
+                border: 1px solid {{ '#86efac' if category == 'success' else '#fca5a5' }};
+                color: {{ '#15803d' if category == 'success' else '#b91c1c' }};">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endwith %}
+
+            <!-- Submission section -->
+            {% if session.role == 'student' %}
+            {% if submission %}
+            <!-- Already submitted -->
+            <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px; padding: 24px;">
+                <h3 style="color: #15803d; margin-bottom: 10px;">✅ Submission Received</h3>
+                <p style="font-size: 0.9rem; color: #444;">Submitted on <strong>{{ submission.submitted_at.strftime('%d
+                        %b %Y, %I:%M %p') }}</strong></p>
+                {% if submission.file_path %}
+                <p style="font-size: 0.85rem; color: #666; margin-top: 6px;">📎 File: {{
+                    submission.file_path.split('/')[-1] }}</p>
+                {% endif %}
+
+                {% if submission.grade is not none %}
+                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #a7f3d0;">
+                    <p style="font-size: 0.9rem; font-weight: 600;">Grade:
+                        <span style="color: var(--simad-blue); font-size: 1.2rem;">{{ submission.grade }} / {{
+                            assignment.points }}</span>
+                    </p>
+                    {% if submission.feedback %}
+                    <p style="font-size: 0.85rem; color: #444; margin-top: 8px;">
+                        <strong>Instructor Feedback:</strong><br>{{ submission.feedback }}
+                    </p>
+                    {% endif %}
+                </div>
+                {% else %}
+                <p style="margin-top: 12px; font-size: 0.85rem; color: #666;">⏳ Awaiting grading.</p>
+                {% endif %}
+            </div>
+
+            {% else %}
+            <!-- Upload form -->
+            <h3 style="font-size: 1rem; margin-bottom: 16px;">Your Submission</h3>
+            <form action="/assignment/{{ assignment.id }}/submit" method="POST" enctype="multipart/form-data"
+                id="submitForm">
+                <div class="upload-zone" id="dropZone"
+                    style="cursor: pointer; border: 2px dashed #ccd; border-radius: 10px; padding: 40px; text-align: center; transition: all 0.2s;"
+                    onclick="document.getElementById('fileInput').click()">
+                    <div style="font-size: 2.5rem; margin-bottom: 12px;">📤</div>
+                    <p style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">
+                        Drag & drop your file here
+                    </p>
+                    <p style="font-size: 0.85rem; color: #888;">PDF, DOCX, TXT, ZIP • Max 16 MB</p>
+                    <p id="fileName"
+                        style="margin-top: 12px; font-size: 0.85rem; color: var(--simad-blue); font-weight: 600;"></p>
+                </div>
+                <input type="file" id="fileInput" name="file" accept=".pdf,.doc,.docx,.txt,.zip" style="display: none;"
+                    required>
+
+                <button type="submit" id="submitBtn" class="btn-primary"
+                    style="width: 100%; margin-top: 16px; padding: 14px; font-size: 1rem;" disabled>
+                    Submit Assignment
+                </button>
+            </form>
+            {% endif %}
+
+            {% else %}
+            <!-- Instructor view -->
+            <div style="background: #f0f7ff; border-radius: 10px; padding: 20px; text-align: center;">
+                <p style="color: #666; font-size: 0.9rem;">You are viewing this as <strong>{{ session.role }}</strong>.
+                </p>
+                <a href="/instructor/gradebook/{{ assignment.id }}" class="btn-primary"
+                    style="display: inline-block; margin-top: 12px; padding: 10px 24px; font-size: 0.9rem;">
+                    📊 Open Gradebook
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right: Meta info -->
+    <div class="right-col">
+        <div class="card">
+            <h3 style="font-size: 1rem; margin-bottom: 16px; color: var(--simad-blue);">Assignment Info</h3>
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div>
+                    <p
+                        style="font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">
+                        Course</p>
+                    <p style="font-weight: 600; font-size: 0.9rem;">{{ assignment.course.code if assignment.course else
+                        'N/A' }} — {{ assignment.course.title if assignment.course else '' }}</p>
+                </div>
+                <div>
+                    <p
+                        style="font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">
+                        Points</p>
+                    <p style="font-weight: 700; font-size: 1.2rem; color: var(--simad-gold);">{{ assignment.points }}
+                        pts</p>
+                </div>
+                <div>
+                    <p
+                        style="font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">
+                        Due Date</p>
+                    <p style="font-weight: 600; font-size: 0.9rem;">
+                        {% if assignment.due_date %}
+                        {{ assignment.due_date.strftime('%d %b %Y') }}<br>
+                        <span style="color: #666;">{{ assignment.due_date.strftime('%I:%M %p') }}</span>
+                        {% else %}
+                        No deadline
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <p
+                        style="font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">
+                        Status</p>
+                    {% if session.role == 'student' %}
+                    {% if submission %}
+                    {% if submission.grade is not none %}
+                    <span class="badge badge-success">GRADED</span>
+                    {% else %}
+                    <span class="badge badge-warning">SUBMITTED</span>
+                    {% endif %}
+                    {% else %}
+                    <span class="badge badge-secondary">PENDING</span>
+                    {% endif %}
+                    {% else %}
+                    <span class="badge badge-secondary">INSTRUCTOR VIEW</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const fileName = document.getElementById('fileName');
+    const dropZone = document.getElementById('dropZone');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function () {
+            if (fileInput.files.length > 0) {
+                fileName.textContent = '✅ ' + fileInput.files[0].name;
+                submitBtn.disabled = false;
+                dropZone.style.borderColor = 'var(--simad-blue)';
+                dropZone.style.background = '#f0f7ff';
+            }
+        });
+
+        dropZone.addEventListener('dragover', e => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--simad-blue)';
+            dropZone.style.background = '#f0f7ff';
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.borderColor = '#ccd';
+            dropZone.style.background = '';
+        });
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            fileInput.files = e.dataTransfer.files;
+            fileInput.dispatchEvent(new Event('change'));
+        });
+    }
+</script>
+{% endblock %}
+{% endblock %}

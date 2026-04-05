@@ -12,10 +12,12 @@
 
 <body>
 
-    <!-- Shared Sidebar Component -->
+    <!-- Shared Sidebar -->
     <aside class="sidebar">
         <div class="brand">SIMAD <span>oLearn</span></div>
         <ul class="nav-menu">
+
+            <!-- Dashboard (all roles) -->
             <li class="nav-item">
                 <a href="{{ url_for('dashboard') }}" class="{{ 'active' if active_page == 'dashboard' else '' }}">
                     🏠 Dashboard
@@ -23,34 +25,43 @@
             </li>
 
             {% if session.role == 'student' %}
-            <li class="nav-item"><a href="/courses.html">📚 My Courses</a></li>
-            <li class="nav-item"><a href="/exams.html">🛡️ Shield Exams</a></li>
+            <li class="nav-item"><a href="{{ url_for('courses') }}">📚 My Courses</a></li>
+            <li class="nav-item"><a href="{{ url_for('exams') }}">🛡️ Shield Exams</a></li>
+            <li class="nav-item"><a href="{{ url_for('calendar') }}">📅 Calendar</a></li>
+
             {% elif session.role == 'instructor' %}
-            <li class="nav-item"><a href="/instructor/create_quiz">📝 Create Quiz</a></li>
-            <li class="nav-item"><a href="#">📊 Analytics</a></li>
+            <li class="nav-item"><a href="{{ url_for('create_course') }}">🏫 New Course</a></li>
+            <li class="nav-item"><a href="{{ url_for('create_quiz') }}">📝 Create Quiz</a></li>
+            <li class="nav-item"><a href="{{ url_for('create_announcement') }}">📢 Announce</a></li>
+
             {% elif session.role == 'sys_admin' %}
-            <li class="nav-item"><a href="#">🔐 IAM Control</a></li>
-            <li class="nav-item"><a href="#">🛰️ API Connect</a></li>
+            <li class="nav-item"><a href="{{ url_for('create_announcement') }}">📢 Announcements</a></li>
+            <li class="nav-item"><a href="#" style="color: #aaa; pointer-events: none;">🛰️ API Connect</a></li>
+
             {% elif session.role == 'exam_admin' %}
-            <li class="nav-item"><a href="/admin/policies">📜 Policy Engine</a></li>
-            <li class="nav-item"><a href="/admin/integrity_review">⚖️ Integrity Desk</a></li>
+            <li class="nav-item"><a href="{{ url_for('manage_policies') }}">📜 Policy Engine</a></li>
+            <li class="nav-item"><a href="{{ url_for('integrity_review') }}">⚖️ Integrity Desk</a></li>
             {% endif %}
 
+            <!-- Common bottom links -->
+            <li class="nav-item"><a href="{{ url_for('support') }}">💬 Support</a></li>
+            <li class="nav-item"><a href="{{ url_for('settings') }}">⚙️ Settings</a></li>
             <li class="nav-item" style="margin-top: auto;">
-                <a href="/logout" style="color: var(--danger);">🚪 Sign Out</a>
+                <a href="{{ url_for('logout') }}" style="color: var(--danger);">🚪 Sign Out</a>
             </li>
         </ul>
     </aside>
 
-    <!-- Shared Header & Content Body -->
+    <!-- Main Content Area -->
     <main class="main-content">
         <header>
             <div class="section-title">
                 {% block header_title %}{% endblock %}
             </div>
             <div class="user-profile">
-                <span class="badge badge-secondary" style="margin-right: 12px; font-size: 0.7rem;">{{ session.role |
-                    upper }}</span>
+                <span class="badge badge-secondary" style="margin-right: 12px; font-size: 0.7rem;">
+                    {{ session.role | upper }}
+                </span>
                 <span style="font-weight: 600;">{{ session.user_name }}</span>
                 <div class="avatar">{{ session.user_name[:2].upper() }}</div>
             </div>

@@ -1,87 +1,179 @@
 {% extends "base.html" %}
-
-{% block title %}Integrity Review - SIMAD oLearn{% endblock %}
-
+{% block title %}Integrity Desk | SIMAD oLearn{% endblock %}
 {% block header_title %}Academic Integrity Desk{% endblock %}
 
 {% block content %}
-<div class="card" style="margin-bottom: 24px;">
-    <h2>Identity Verification Queue</h2>
-    <p style="color: #666; font-size: 0.85rem; margin-bottom: 20px;">Review captured snapshots and verification clips.
-    </p>
+<div style="margin-top: 20px;">
 
-    <table style="width: 100%; border-collapse: collapse;">
-        <thead>
-            <tr style="text-align: left; background: #f8f9fa;">
-                <th style="padding: 12px;">Candidate</th>
-                <th style="padding: 12px;">Timestamp</th>
-                <th style="padding: 12px;">Evidence Snapshot</th>
-                <th style="padding: 12px;">Video Link</th>
-                <th style="padding: 12px;">Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for v in verifications %}
-            <tr style="border-bottom: 1px solid #eee;">
-                <td style="padding: 12px;">
-                    <strong>{{ v.student.name }}</strong><br>
-                    <span style="font-size: 0.75rem; color: #999;">{{ v.student.email }}</span>
-                </td>
-                <td style="padding: 12px; font-size: 0.85rem;">{{ v.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
-                <td style="padding: 12px;">
-                    <!-- Real implementation would serve the image file -->
-                    <div
-                        style="width: 80px; height: 50px; background: #ddd; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #666; overflow: hidden;">
-                        {% if v.photo_url %}Snapshot OK{% else %}NO IMAGE{% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div style="padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; font-size: 0.9rem;
+        background: {{ '#f0fdf4' if category == 'success' else '#fff0f0' }};
+        border: 1px solid {{ '#86efac' if category == 'success' else '#fca5a5' }};
+        color: {{ '#15803d' if category == 'success' else '#b91c1c' }};">{{ message }}</div>
+    {% endfor %}
+    {% endwith %}
+
+    <!-- Pending Attempts -->
+    <div class="card" style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <h2 style="font-size: 1rem;">⏳ Pending Integrity Reviews</h2>
+                <p style="font-size: 0.85rem; color: #888; margin-top: 4px;">
+                    Certify, invalidate, or flag for appeal. Once locked, decisions are audited.
+                </p>
+            </div>
+            {% if pending_attempts %}
+            <span class="badge badge-danger" style="font-size: 0.85rem;">{{ pending_attempts | length }} pending</span>
+            {% endif %}
+        </div>
+
+        {% if pending_attempts %}
+        {% for attempt in pending_attempts %}
+        <div style="padding: 20px; border: 1px solid #eee; border-radius: 10px; margin-bottom: 16px;">
+            <div
+                style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+                <div>
+                    <h3 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 4px;">
+                        {{ attempt.student.name }} — {{ attempt.session.title if attempt.session else 'Unknown' }}
+                    </h3>
+                    <div style="font-size: 0.82rem; color: #888; display: flex; gap: 12px; flex-wrap: wrap;">
+                        <span>📧 {{ attempt.student.email }}</span>
+                        {% if attempt.score is not none %}
+                        <span>📊 Score: {{ attempt.score | int }}/{{ attempt.max_score | int }}</span>
+                        {% endif %}
+                        <span>🕐 Submitted: {{ attempt.submitted_at.strftime('%d %b %Y, %H:%M') if attempt.submitted_at
+                            else '—' }}</span>
                     </div>
-                </td>
-                <td style="padding: 12px;">
-                    <a href="#" style="font-size: 0.85rem; color: var(--simad-blue);">View 3s Clip</a>
-                </td>
-                <td style="padding: 12px;">
-                    <span class="badge badge-success">{{ v.status | upper }}</span>
-                </td>
-            </tr>
-            {% endfor %}
-            {% if not verifications %}
-            <tr>
-                <td colspan="5" style="padding: 40px; text-align: center; color: #666;">No identity records found.</td>
-            </tr>
-            {% endif %}
-        </tbody>
-    </table>
-</div>
+                </div>
+                <a href="/proctor/dashboard/{{ attempt.session_id }}" style="font-size: 0.82rem; color: var(--simad-blue); text-decoration: none; padding: 6px 14px;
+                          border: 1px solid var(--simad-blue); border-radius: 6px; white-space: nowrap;">
+                    👁 View Session
+                </a>
+            </div>
 
-<div class="card">
-    <h2>Proctoring Violations (Shield Logs)</h2>
-    <p style="color: #666; font-size: 0.85rem; margin-bottom: 20px;">Automated flags from focus loss or app switching.
-    </p>
-
-    <table style="width: 100%; border-collapse: collapse;">
-        <thead style="text-align: left; background: #fff5f5;">
-            <tr>
-                <th style="padding: 12px;">Event Type</th>
-                <th style="padding: 12px;">Attempt ID</th>
-                <th style="padding: 12px;">Severity</th>
-                <th style="padding: 12px;">Time Captured</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for f in flags %}
-            <tr style="border-bottom: 1px solid #eee;">
-                <td style="padding: 12px;">⚠️ {{ f.flag_type }}</td>
-                <td style="padding: 12px;">#{{ f.attempt_id }}</td>
-                <td style="padding: 12px;"><span class="badge badge-danger">{{ f.severity | upper }}</span></td>
-                <td style="padding: 12px; font-size: 0.85rem; color: #666;">{{ f.timestamp.strftime('%H:%M:%S') }}</td>
-            </tr>
-            {% endfor %}
-            {% if not flags %}
-            <tr>
-                <td colspan="4" style="padding: 40px; text-align: center; color: #666;">No proctoring flags detected.
-                </td>
-            </tr>
+            <!-- Flag count -->
+            {% set attempt_flags = flags | selectattr('attempt_id', 'equalto', attempt.id) | list %}
+            {% if attempt_flags %}
+            <div style="background: #fff5f5; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;
+                        font-size: 0.85rem; color: var(--danger); border-left: 3px solid var(--danger);">
+                ⚠️ {{ attempt_flags | length }} integrity flag{{ 's' if attempt_flags | length != 1 }} detected
+                ({{ attempt_flags | map(attribute='flag_type') | join(', ') }})
+            </div>
             {% endif %}
-        </tbody>
-    </table>
+
+            <!-- Action form -->
+            <form action="/admin/review_attempt/{{ attempt.id }}" method="POST"
+                style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
+                <div style="flex: 1; min-width: 220px;">
+                    <label class="form-label" style="font-size: 0.8rem;">Reason / Notes</label>
+                    <input type="text" name="reason" class="form-control" style="height: 38px; font-size: 0.85rem;"
+                        placeholder="Optional notes for audit trail">
+                </div>
+                <button type="submit" name="action" value="certify" class="btn-primary"
+                    style="padding: 9px 18px; font-size: 0.82rem; background: var(--success); white-space: nowrap;">
+                    ✓ Certify
+                </button>
+                <button type="submit" name="action" value="invalidate" class="btn-primary"
+                    style="padding: 9px 18px; font-size: 0.82rem; background: var(--danger); white-space: nowrap;"
+                    onclick="return confirm('Invalidate this attempt? This cannot be undone.')">
+                    ✕ Invalidate
+                </button>
+                <button type="submit" name="action" value="appeal" style="padding: 9px 18px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+                               border: 2px solid var(--simad-gold); border-radius: 8px;
+                               background: #fffbeb; color: #92400e; white-space: nowrap;">
+                    ↩ Mark Appeal
+                </button>
+            </form>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div style="text-align: center; padding: 50px; color: #ccc;">
+            <div style="font-size: 3rem; margin-bottom: 12px;">✅</div>
+            <p>No pending attempts to review.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Identity Verification Queue -->
+    <div class="card" style="margin-bottom: 24px;">
+        <h2 style="font-size: 1rem; margin-bottom: 16px;">🪪 Identity Verification Queue</h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+            <thead>
+                <tr style="background: #f8f9ff; text-align: left;">
+                    <th style="padding: 10px 14px;">Candidate</th>
+                    <th style="padding: 10px 14px;">Timestamp</th>
+                    <th style="padding: 10px 14px;">Snapshot</th>
+                    <th style="padding: 10px 14px;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in verifications %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 10px 14px;">
+                        <strong>{{ v.student.name }}</strong><br>
+                        <span style="font-size: 0.75rem; color: #888;">{{ v.student.email }}</span>
+                    </td>
+                    <td style="padding: 10px 14px; color: #666; font-size: 0.82rem;">
+                        {{ v.timestamp.strftime('%d %b %Y, %H:%M') }}
+                    </td>
+                    <td style="padding: 10px 14px;">
+                        {% if v.photo_url %}
+                        <span style="color: var(--success); font-size: 0.82rem;">✔ Snapshot OK</span>
+                        {% else %}
+                        <span style="color: var(--danger); font-size: 0.82rem;">✕ No Image</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 10px 14px;">
+                        <span class="badge {{ 'badge-success' if v.status == 'verified' else 'badge-warning' }}">
+                            {{ v.status | upper }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not verifications %}
+                <tr>
+                    <td colspan="4" style="padding: 40px; text-align: center; color: #aaa;">No identity records.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- All Flags Feed -->
+    <div class="card">
+        <h2 style="font-size: 1rem; margin-bottom: 16px;">📋 Proctoring Flags (All Sessions)</h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+            <thead>
+                <tr style="background: #fff5f5; text-align: left;">
+                    <th style="padding: 10px 14px;">Type</th>
+                    <th style="padding: 10px 14px;">Attempt</th>
+                    <th style="padding: 10px 14px;">Severity</th>
+                    <th style="padding: 10px 14px;">Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in flags %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 10px 14px;">⚠️ {{ f.flag_type | replace('_', ' ') | title }}</td>
+                    <td style="padding: 10px 14px; color: #666;">#{{ f.attempt_id }}</td>
+                    <td style="padding: 10px 14px;">
+                        <span
+                            class="badge {{ 'badge-danger' if f.severity == 'high' else 'badge-warning' if f.severity == 'medium' else 'badge-secondary' }}">
+                            {{ f.severity | upper }}
+                        </span>
+                    </td>
+                    <td style="padding: 10px 14px; color: #888; font-size: 0.82rem;">{{ f.timestamp.strftime('%d %b,
+                        %H:%M:%S') }}</td>
+                </tr>
+                {% endfor %}
+                {% if not flags %}
+                <tr>
+                    <td colspan="4" style="padding: 40px; text-align: center; color: #aaa;">No proctoring flags.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Add Module — {{ course.code }} | SIMAD oLearn{% endblock %}
+{% block header_title %}
+<a href="/course-detail.html?id={{ course.id }}"
+    style="color: var(--text-muted); text-decoration: none; font-size: 0.85rem;">← Back to {{ course.code }}</a>
+<h1 style="margin-top: 4px;">Add Module</h1>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 680px; margin: 32px auto;">
+    <div class="card">
+        <h2 style="font-size: 1.1rem; margin-bottom: 6px;">📖 New Module for <span style="color: var(--simad-blue);">{{
+                course.code }}: {{ course.title }}</span></h2>
+        <p style="color: #888; font-size: 0.85rem; margin-bottom: 28px;">Add a reading, video link, or text content for
+            students.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div style="padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;
+            background: {{ '#f0fdf4' if category == 'success' else '#fff0f0' }};
+            border: 1px solid {{ '#86efac' if category == 'success' else '#fca5a5' }};
+            color: {{ '#15803d' if category == 'success' else '#b91c1c' }}; font-size: 0.9rem;">{{ message }}</div>
+        {% endfor %}
+        {% endwith %}
+
+        <form action="/instructor/add_module/{{ course.id }}" method="POST" style="display: grid; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Module Title</label>
+                <input type="text" name="title" class="form-control" placeholder="e.g. Introduction to Databases"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Content Type</label>
+                <select name="content_type" id="contentType" class="form-control" onchange="toggleContent()">
+                    <option value="text">📝 Text / Notes</option>
+                    <option value="video">🎥 Video (URL)</option>
+                    <option value="pdf">📄 PDF / Document (URL)</option>
+                    <option value="link">🔗 External Link</option>
+                </select>
+            </div>
+
+            <!-- Text area for text modules -->
+            <div class="form-group" id="textSection">
+                <label class="form-label">Content</label>
+                <textarea name="content_text" class="form-control" rows="10"
+                    placeholder="Write your module content here..."></textarea>
+            </div>
+
+            <!-- URL input for other types -->
+            <div class="form-group" id="urlSection" style="display: none;">
+                <label class="form-label">URL</label>
+                <input type="url" name="content_url" class="form-control" placeholder="https://...">
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <a href="/course-detail.html?id={{ course.id }}" style="padding: 12px 24px; border: 1px solid #ddd; border-radius: 8px;
+                          background: white; text-decoration: none; color: #444; font-size: 0.9rem;">Cancel</a>
+                <button type="submit" class="btn-primary" style="padding: 12px 32px;">Add Module →</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    function toggleContent() {
+        const type = document.getElementById('contentType').value;
+        document.getElementById('textSection').style.display = (type === 'text') ? 'block' : 'none';
+        document.getElementById('urlSection').style.display = (type !== 'text') ? 'block' : 'none';
+    }
+</script>
+{% endblock %}
+{% endblock %}
