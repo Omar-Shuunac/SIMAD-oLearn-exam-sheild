@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Exam Manager | SIMAD oLearn{% endblock %}
+
+{% block content %}
+<div class="dashboard-container" style="max-width: 1400px; margin: 0 auto; padding: 10px 20px;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <div>
+            <h1 style="margin: 0; font-size: 1.8rem; font-weight: 800; color: #001f3d;">Exam Strategy Console</h1>
+            <p style="margin: 5px 0 0; color: #666;">Schedule and manage assessment lifecycles.</p>
+        </div>
+        <div style="display: flex; gap: 15px;">
+            <form action="{{ url_for('instructor_exams') }}" method="GET">
+                <select name="course_id" onchange="this.form.submit()" style="padding: 10px 20px; border-radius: 10px; border: 1px solid #ddd; background: white; font-weight: 600; cursor: pointer;">
+                    <option value="">All Course sessions</option>
+                    {% for course in courses %}
+                    <option value="{{ course.id }}" {{ 'selected' if current_filter == course.id }}>{{ course.code }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+            <a href="{{ url_for('exam_builder') }}" class="btn-primary" style="padding: 10px 20px; text-decoration: none; border-radius: 10px; font-weight: 700; background: var(--simad-blue); box-shadow: 0 4px 10px rgba(0,31,61,0.2);">Build New Assessment 🚀</a>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px;">
+        {% for exam in exams %}
+        <div class="card" style="padding: 0; overflow: hidden; border-radius: 16px; border-bottom: 4px solid {{ '#ef4444' if exam.status == 'live' else '#cbd5e0' }};">
+            <div style="padding: 24px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <span class="badge" style="background: {{ '#fef2f2' if exam.status == 'live' else '#f8fafc' }}; color: {{ '#ef4444' if exam.status == 'live' else '#4a5568' }}; text-transform: uppercase; font-size: 0.65rem; font-weight: 800; border: 1px solid {{ '#fee2e2' if exam.status == 'live' else '#edf2f7' }};">{{ exam.status }}</span>
+                    <span style="font-weight: 800; color: #cbd5e0; font-size: 0.75rem;">WEIGHT {{ exam.weight }}%</span>
+                </div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: #2d3748;">{{ exam.title }}</h3>
+                <div style="font-size: 0.85rem; color: var(--simad-blue); font-weight: 700; margin-top: 5px;">{{ exam.course.code }}: {{ exam.course.title[:30] }}...</div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px dashed #e2e8f0;">
+                    <div style="text-align: center;">
+                        <div style="font-weight: 800; font-size: 1rem; color: var(--simad-blue);">{{ exam.duration_mins }}'</div>
+                        <div style="font-size: 0.6rem; color: #a0aec0; text-transform: uppercase;">Duration</div>
+                    </div>
+                    <div style="text-align: center; border-left: 1px solid #e2e8f0;">
+                        <div style="font-weight: 800; font-size: 1rem; color: var(--simad-blue);">{{ exam.exam_questions|length }}</div>
+                        <div style="font-size: 0.6rem; color: #a0aec0; text-transform: uppercase;">Items</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px; display: flex; gap: 10px;">
+                    <a href="{{ url_for('exam_builder', session_id=exam.id) }}" class="btn-primary" style="flex: 1; text-align: center; font-size: 0.85rem; background: #edf2f7; border: 1px solid #ddd; color: #4a5568;">Configuration</a>
+                    <a href="{{ url_for('integrity_review', course_id=exam.course_id) }}" class="btn-primary" style="flex: 1; text-align: center; font-size: 0.85rem; background: transparent; border: 1px solid #fee2e2; color: #ef4444;">Proctor Logs</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card" style="grid-column: span 3; text-align: center; padding: 60px 0;">
+            <p style="color: #a0aec0; font-size: 1.1rem;">No assessment sessions scheduled yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

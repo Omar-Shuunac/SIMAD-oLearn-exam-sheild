@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Submissions Manager | SIMAD oLearn{% endblock %}
+
+{% block content %}
+<div class="dashboard-container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <div>
+            <h1 style="margin: 0; font-size: 1.8rem; font-weight: 800; color: #001f3d;">Pending Submissions</h1>
+            <p style="margin: 5px 0 0; color: #666;">Grade student work and provide feedback pulse.</p>
+        </div>
+        <form action="{{ url_for('submissions_list') }}" method="GET">
+            <select name="course_id" onchange="this.form.submit()" style="padding: 10px 20px; border-radius: 10px; border: 1px solid #ddd; background: white; font-weight: 600; cursor: pointer;">
+                <option value="">All Managed Courses</option>
+                {% for course in courses %}
+                <option value="{{ course.id }}" {{ 'selected' if current_filter == course.id }}>{{ course.code }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    <div class="card" style="padding: 0; overflow: hidden; border-radius: 16px;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead style="background: #f8fafc;">
+                <tr style="text-align: left; border-bottom: 2px solid #eee;">
+                    <th style="padding: 15px 25px; color: #4a5568; font-size: 0.85rem;">Student</th>
+                    <th style="padding: 15px 25px; color: #4a5568; font-size: 0.85rem;">Assignment</th>
+                    <th style="padding: 15px 25px; color: #4a5568; font-size: 0.85rem;">Submitted</th>
+                    <th style="padding: 15px 25px; color: #4a5568; font-size: 0.85rem;">Status</th>
+                    <th style="padding: 15px 25px; color: #4a5568; font-size: 0.85rem; text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in submissions %}
+                <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.1s;">
+                    <td style="padding: 20px 25px;">
+                        <div style="font-weight: 700; color: #2d3748;">{{ sub.student.name }}</div>
+                        <div style="font-size: 0.75rem; color: #718096;">ID: {{ sub.student.id }}</div>
+                    </td>
+                    <td style="padding: 20px 25px;">
+                        <div style="font-weight: 600;">{{ sub.assignment.title }}</div>
+                        <div style="font-size: 0.75rem; color: #10b981;">{{ sub.assignment.course.code }}</div>
+                    </td>
+                    <td style="padding: 20px 25px; font-size: 0.85rem; color: #2d3748;">
+                        {{ sub.submitted_at.strftime('%d %b, %H:%M') }}
+                        {% if sub.is_late %}
+                        <span class="badge" style="background: #fee2e2; color: #b91c1c; font-size: 0.65rem; margin-left: 5px;">LATE</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 20px 25px;">
+                        <span class="badge badge-warning" style="background: #fffbeb; color: #92400e;">Pending Review</span>
+                    </td>
+                    <td style="padding: 20px 25px; text-align: right;">
+                        <a href="{{ url_for('gradebook', assignment_id=sub.assignment_id) }}" class="btn-primary" style="padding: 8px 16px; font-size: 0.85rem; border-radius: 8px;">Grade Now &rarr;</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="padding: 80px 0; text-align: center; color: #a0aec0;">
+                        <div style="font-size: 2.5rem; margin-bottom: 15px;">✅</div>
+                        <p style="font-size: 1.1rem; font-weight: 500;">Inbox Zero! No pending submissions to grade.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
