@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Edit Module | SIMAD oLearn{% endblock %}
+{% block header_title %}Edit Module: {{ module.title }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+    <h2 style="margin-top: 0; color: var(--simad-blue);">📝 Update Module Content</h2>
+    <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px;">Editing module for course <strong>{{ course.code }}: {{ course.title }}</strong>.</p>
+
+    <form method="POST">
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem;">Module Title</label>
+        <input type="text" name="title" required value="{{ module.title }}"
+            style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; font-size: 1rem; box-sizing: border-box;">
+
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem;">Content Format</label>
+        <select name="content_type" id="contentType" required
+            style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; font-size: 1rem; box-sizing: border-box;">
+            <option value="video" {% if module.content_type == 'video' %}selected{% endif %}>Video (YouTube Link)</option>
+            <option value="pdf" {% if module.content_type == 'pdf' %}selected{% endif %}>PDF Document (URL)</option>
+            <option value="link" {% if module.content_type == 'link' %}selected{% endif %}>External Website Link</option>
+            <option value="text" {% if module.content_type == 'text' %}selected{% endif %}>Rich Text / Notes</option>
+        </select>
+
+        <div id="urlInputContainer" style="{% if module.content_type == 'text' %}display: none;{% endif %}" >
+            <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem;">Resource URL</label>
+            <input type="url" name="content_url" id="contentUrl" value="{{ module.content_url if module.content_type != 'text' else '' }}"
+                placeholder="https://..."
+                style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; font-size: 1rem; box-sizing: border-box;">
+        </div>
+
+        <div id="textInputContainer" style="{% if module.content_type != 'text' %}display: none;{% endif %}">
+            <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem;">Text Content</label>
+            <textarea name="content_text" id="contentText" rows="8"
+                style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; font-size: 1rem; box-sizing: border-box; font-family: inherit;">{{ module.content_url if module.content_type == 'text' else '' }}</textarea>
+        </div>
+
+        <div style="display: flex; gap: 15px; margin-top: 10px;">
+            <button type="submit" class="btn-primary" style="flex: 1; padding: 14px; font-size: 1.05rem;">Save Changes</button>
+            <a href="{{ url_for('course_detail', id=course.id, mod=module.id) }}" class="btn-primary" style="flex: 1; text-align: center; background: transparent; border: 1px solid #ccc; color: #666; padding: 14px; font-size: 1.05rem;">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.getElementById('contentType').addEventListener('change', function() {
+        if(this.value === 'text') {
+            document.getElementById('urlInputContainer').style.display = 'none';
+            document.getElementById('contentUrl').removeAttribute('required');
+            document.getElementById('textInputContainer').style.display = 'block';
+            document.getElementById('contentText').setAttribute('required', 'required');
+        } else {
+            document.getElementById('urlInputContainer').style.display = 'block';
+            document.getElementById('contentUrl').setAttribute('required', 'required');
+            document.getElementById('textInputContainer').style.display = 'none';
+            document.getElementById('contentText').removeAttribute('required');
+        }
+    });
+</script>
+{% endblock %}

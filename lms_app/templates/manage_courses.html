@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% set active_page = 'courses' %}
+
+{% block title %}Manage Courses - SIMAD oLearn{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Global Course Directory</h1>
+        <p>Overview and lifecycle control of all courses available on the platform.</p>
+    </div>
+
+    <!-- Courses Grid -->
+    <div class="dashboard-modular-grid">
+        {% for course in courses %}
+        <div class="card-modular" style="display: flex; flex-direction: column; padding: 24px;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #e8f5e9; color: #3aae49; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 20px;">📚</div>
+            <div style="font-size: 0.75rem; color: #a0a0a0; font-weight: 700; text-transform: uppercase;">{{ course.code }}</div>
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: #1a1a1a; margin-top: 6px; margin-bottom: 4px;">{{ course.title }}</h3>
+            <div style="font-size: 0.85rem; color: #888; font-weight: 500;">Instructor: {{ course.instructor_id }}</div> <!-- Phase 2: Pull instructor name -->
+            
+            <div style="margin-top: 30px; display: flex; justify-content: space-between; border-top: 1px solid #f0f0f0; padding-top: 20px;">
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-size: 0.7rem; color: #a0a0a0; font-weight: 600; text-transform: uppercase;">Enrollment</span>
+                    <span style="font-size: 0.95rem; font-weight: 800; color: #1a1a1a;">--</span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-size: 0.7rem; color: #a0a0a0; font-weight: 600; text-transform: uppercase;">Modules</span>
+                    <span style="font-size: 0.95rem; font-weight: 800; color: #1a1a1a;">{{ course.modules|length }}</span>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                    <span style="font-size: 0.7rem; color: #a0a0a0; font-weight: 600; text-transform: uppercase;">Status</span>
+                    <span style="font-size: 0.95rem; font-weight: 700; color: #3aae49;">Active</span>
+                </div>
+            </div>
+            
+            <div style="margin-top: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <button class="nav-item a active" style="padding: 10px; border-radius: 10px; font-size: 0.8rem; text-decoration: none; border: none; cursor: pointer; text-align: center;">View Detail</button>
+                <button style="padding: 10px; border-radius: 10px; font-size: 0.8rem; border: 1px solid #f0f0f0; background: white; color: #ff4d4d; cursor: pointer; font-weight: 600;">Lock Entry</button>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <!-- Add New Card -->
+        <div class="card-modular" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border: 3px dashed #f0f0f0; background: none; box-shadow: none;">
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: #f0f4f8; color: #1a97f5; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 15px; cursor: pointer;">+</div>
+            <h4 style="font-weight: 700; font-size: 1rem; color: #1a1a1a; margin-bottom: 6px;">New Course</h4>
+            <p style="font-size: 0.8rem; color: #a0a0a0; margin-bottom: 0;">Add to platform directory</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

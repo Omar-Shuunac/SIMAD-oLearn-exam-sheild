@@ -261,7 +261,7 @@
     <form id="examForm" action="/exam/submit/{{ attempt.id }}" method="POST" style="padding-bottom: 100px;">
 
         {% for q in questions %}
-        <div class="question-card {{ 'active' if loop.first else '' }}" id="q{{ loop.index }}">
+        <div class="question-card {{ 'active' if loop.first else '' }}" id="q{{ loop.index }}" data-q-id="{{ q.id }}">
             <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
                 <span class="badge badge-secondary">Question {{ loop.index }} / {{ questions | length }}</span>
                 <span style="font-weight: 600; color: var(--simad-blue); font-size: 0.9rem;">
@@ -433,14 +433,11 @@
         }
 
         function getQIdx(qId) {
-            // Map q.id → loop index (need data attr)
-            const cards = document.querySelectorAll('.question-card');
-            for (let i = 0; i < cards.length; i++) {
-                if (cards[i].id === `q${i + 1}`) {
-                    // check if contains an element with the qId
-                }
+            const card = document.querySelector(`.question-card[data-q-id="${qId}"]`);
+            if (card) {
+                return parseInt(card.id.replace('q', ''));
             }
-            return parseInt(qId) || 0; // fallback
+            return 0;
         }
 
         // ── Navigation ──────────────────────────────────────────────────────────────

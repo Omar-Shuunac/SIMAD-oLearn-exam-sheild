@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% set active_page = 'enrollments' %}
+
+{% block title %}Manage Enrollments - SIMAD oLearn{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Global Enrollment Ledger</h1>
+        <p>Monitor student progress and course performance across the entire platform.</p>
+    </div>
+
+    <!-- Enrollments Table Card -->
+    <div class="card-modular" style="padding: 0; overflow: hidden;">
+        <div style="padding: 24px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; font-size: 1.1rem; color: #1a1a1a;">Platform Enrollments</h3>
+            <button class="btn-primary" style="padding: 10px 20px; font-size: 0.85rem;">Batch Enroll Users</button>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background: #f9fbfd; border-bottom: 1px solid #f0f0f0;">
+                    <th style="padding: 16px 24px; color: #a0a0a0; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">Student</th>
+                    <th style="padding: 16px 24px; color: #a0a0a0; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">Course</th>
+                    <th style="padding: 16px 24px; color: #a0a0a0; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">Progress</th>
+                    <th style="padding: 16px 24px; color: #a0a0a0; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">Grade</th>
+                    <th style="padding: 16px 24px; color: #a0a0a0; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for enroll in enrollments %}
+                <tr style="border-bottom: 1px solid #f8f8f8; transition: background 0.2s;" onmouseover="this.style.background='#fcfdff'" onmouseout="this.style.background='white'">
+                    <td style="padding: 16px 24px;">
+                        <div style="font-weight: 700; font-size: 0.9rem; color: #1a1a1a;">{{ enroll.student.name }}</div>
+                        <div style="font-size: 0.75rem; color: #a0a0a0;">{{ enroll.student.email }}</div>
+                    </td>
+                    <td style="padding: 16px 24px;">
+                        <div style="font-size: 0.9rem; font-weight: 600; color: #1a1a1a;">{{ enroll.course.title }}</div>
+                        <div style="font-size: 0.75rem; color: #1a97f5; font-weight: 700;">{{ enroll.course.code }}</div>
+                    </td>
+                    <td style="padding: 16px 24px; width: 220px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="flex: 1; height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden;">
+                                <div style="width: 50%; height: 100%; background: #1a97f5; border-radius: 3px;" data-progress="{{ enroll.progress }}"></div>
+                            </div>
+                            <span style="font-size: 0.8rem; font-weight: 700; color: #1a1a1a; width: 35px;">{{ enroll.progress }}%</span>
+                        </div>
+                    </td>
+                    <td style="padding: 16px 24px;">
+                        {% if enroll.grade %}
+                        <span style="font-size: 0.9rem; font-weight: 800; color: #3aae49;">{{ enroll.grade }}/100</span>
+                        {% else %}
+                        <span style="font-size: 0.8rem; color: #a0a0a0; font-style: italic;">In Progress</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 16px 24px;">
+                        <button style="border: none; background: none; color: #ff4d4d; cursor: pointer; font-weight: 600; font-size: 0.85rem;">Drop</button>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not enrollments %}
+                <tr>
+                    <td colspan="5" style="padding: 60px; text-align: center; color: #a0a0a0; font-style: italic;">No active enrollments found.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

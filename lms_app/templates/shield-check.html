@@ -64,7 +64,7 @@
             </div>
 
             <button class="btn-primary" id="proceed-btn" style="width: 100%; opacity: 0.5; pointer-events: none;"
-                onclick="window.location.href='/shield-verify.html'">Proceed to Identity Check</button>
+                onclick="const urlParams = new URLSearchParams(window.location.search); const sessId = urlParams.get('session'); window.location.href='/shield-verify.html?session=' + sessId">Proceed to Identity Check</button>
 
             <script>
                 async function runChecks() {

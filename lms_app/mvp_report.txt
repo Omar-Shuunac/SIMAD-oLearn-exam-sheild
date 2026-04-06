@@ -1,0 +1,88 @@
+
+==================================================
+ 🚀 MVP SYSTEM SCAN REPORT 🚀
+==================================================
+
+=== DATABASE TABLES (The Brain) ===
+✅ user (Fields: 6)
+✅ identity_verification (Fields: 6)
+✅ exam_policy (Fields: 11)
+✅ audit_log (Fields: 8)
+✅ course (Fields: 8)
+✅ module (Fields: 8)
+✅ announcement (Fields: 7)
+✅ assignment (Fields: 10)
+✅ question (Fields: 10)
+✅ choice (Fields: 4)
+✅ submission (Fields: 11)
+✅ module_view (Fields: 5)
+✅ exam_attempt (Fields: 13)
+✅ integrity_flag (Fields: 11)
+✅ question_tag (Fields: 3)
+✅ exam_question (Fields: 5)
+✅ exam_session (Fields: 20)
+✅ enrollment (Fields: 7)
+✅ grade_appeal (Fields: 10)
+
+=== ACTIVE ROUTES (The Actions) ===
+
+[AUTHENTICATION / CORE]
+  - GET: /logout
+  - POST,GET: /login
+  - POST,GET: /register
+
+[SYSTEM / EXAM ADMIN]
+  - GET: /admin/courses
+  - GET: /admin/enrollments
+  - GET: /admin/integrity_review
+  - GET: /admin/placement_results
+  - GET: /admin/policies
+  - GET: /admin/users
+  - GET: /exam_admin/sessions
+  - POST,GET: /admin/database
+  - POST,GET: /admin/policies/create
+  - POST,GET: /exam_admin/schedule_exam
+  - POST: /admin/add_user
+  - POST: /admin/enroll_student
+  - POST: /admin/policies/<int:policy_id>/approve
+  - POST: /admin/policies/<int:policy_id>/delete
+  - POST: /admin/review_attempt/<int:attempt_id>
+  - POST: /exam_admin/session/<int:session_id>/activate
+  - POST: /exam_admin/session/<int:session_id>/end
+
+[INSTRUCTOR (COURSE/MODULE CRUD)]
+  - GET: /instructor/gradebook/<int:assignment_id>
+  - POST,GET: /instructor/add_assignment/<int:course_id>
+  - POST,GET: /instructor/add_module/<int:course_id>
+  - POST,GET: /instructor/create_course
+  - POST,GET: /instructor/create_quiz
+  - POST,GET: /instructor/edit_course/<int:course_id>
+  - POST,GET: /instructor/edit_module/<int:mod_id>
+  - POST: /instructor/delete_course/<int:course_id>
+  - POST: /instructor/delete_module/<int:mod_id>
+  - POST: /instructor/grade_submission/<int:submission_id>
+
+[STUDENT / GENERAL VIEW]
+  - GET: /
+  - GET: /assignment/<int:assignment_id>
+  - GET: /calendar.html
+  - GET: /course-detail.html
+  - GET: /courses.html
+  - GET: /exam/result/<int:attempt_id>
+  - GET: /exam/take/<int:attempt_id>
+  - GET: /exams.html
+  - GET: /index.html
+  - GET: /proctor/dashboard/<int:session_id>
+  - GET: /quiz-interface.html
+  - GET: /settings
+  - GET: /shield-check.html
+  - GET: /shield-verify.html
+  - GET: /styles.css
+  - GET: /support.html
+  - POST,GET: /announcements/create
+  - POST,GET: /exam/<int:session_id>/start
+  - POST: /api/log_flag
+  - POST: /api/save_answer
+  - POST: /api/upload_identity
+  - POST: /assignment/<int:assignment_id>/submit
+  - POST: /exam/submit/<int:attempt_id>

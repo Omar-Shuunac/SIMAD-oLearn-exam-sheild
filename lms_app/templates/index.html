@@ -5,13 +5,21 @@
 {% block header_title %}Student Overview{% endblock %}
 
 {% block content %}
-<div class="dashboard-grid">
+<header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <h2 style="font-size: 1.35rem; font-weight: 600; color: #1a1a1a;">Student Overview</h2>
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="background: #e5e7eb; color: #4b5563; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">{{ session.role }}</span>
+        <span style="font-weight: 600; font-size: 0.9rem; color: #1a1a1a;">{{ session.user_name }}</span>
+        <div style="width: 36px; height: 36px; border-radius: 50%; background: #f4a216; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem;">{{ session.user_name[:2].upper() }}</div>
+    </div>
+</header>
+<div class="dashboard-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 40px;">
     <div class="left-col">
 
         <!-- Welcome -->
-        <div class="card welcome-card">
-            <h1>Good Day, {{ session.user_name.split(' ')[0] }}! 👋</h1>
-            <p>Welcome back. You have <strong>{{ enrollments|length }}</strong> active course{{ 's' if
+        <div class="card welcome-card" style="background: linear-gradient(135deg, #003366, #0066b2); color: white; border-radius: 12px; padding: 30px; margin-bottom: 30px;">
+            <h1 style="color: white; font-size: 2.2rem; font-weight: 800; margin-bottom: 8px;">Good Day, {{ session.user_name.split(' ')[0] }}! 👋</h1>
+            <p style="color: #e0f2fe; font-size: 1rem;">Welcome back. You have <strong>{{ enrollments|length }}</strong> active course{{ 's' if
                 enrollments|length != 1 }}.
                 {% set total_pending = [] %}
                 {% for e in enrollments %}
@@ -23,7 +31,7 @@
         <!-- Flash messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% for category, message in messages %}
-        <div style="padding: 12px 16px; border-radius: 8px; margin-bottom: 12px;
+        <div style="padding: 12px 16px; border-radius: 8px; margin-bottom: 20px;
             background: {{ '#f0fdf4' if category == 'success' else '#fff0f0' }};
             border: 1px solid {{ '#86efac' if category == 'success' else '#fca5a5' }};
             color: {{ '#15803d' if category == 'success' else '#b91c1c' }}; font-size: 0.9rem;">
@@ -34,24 +42,24 @@
 
         <!-- Quick exam launch (if enrolled in at least one course) -->
         {% if enrollments %}
-        <div class="card exam-shield-card">
+        <div class="card exam-shield-card" style="overflow: hidden; margin-bottom: 40px;">
             <div class="exam-info">
                 <div class="exam-status">
-                    <h3>Exam Shield Ready</h3>
-                    <span class="status-badge" style="background-color: var(--success);">AVAILABLE</span>
+                    <h3 style="margin: 0; font-size: 1.2rem;">Exam Shield Ready</h3>
+                    <span class="status-badge" style="background-color: #3aae49; color: white;">AVAILABLE</span>
                 </div>
                 <p style="color: var(--text-muted); margin-top: 4px; font-size: 0.88rem;">
                     Start a proctored exam session with identity verification
                 </p>
             </div>
-            <button class="btn-primary btn-secure" onclick="window.location.href='{{ url_for('shield_check') }}'">
+            <a href="{{ url_for('shield_check') }}" class="btn-primary btn-secure" style="text-decoration: none; padding: 12px 20px; font-weight: 600; font-size: 0.9rem; border-radius: 8px;">
                 Launch Exam Shield 🛡️
-            </button>
+            </a>
         </div>
         {% endif %}
 
         <!-- Enrolled Courses -->
-        <h2 class="section-title">Enrolled Courses</h2>
+        <h2 class="section-title" style="margin-bottom: 20px; font-size: 1.4rem;">Enrolled Courses</h2>
         <div class="courses-container">
             {% for enroll in enrollments %}
             <div class="card course-card" onclick="window.location.href='/course-detail.html?id={{ enroll.course.id }}'"
@@ -114,7 +122,7 @@
         {% endif %}
 
         <!-- Integrity / Status -->
-        <div class="card">
+        <div class="card" style="margin-bottom: 30px;">
             <h3 class="section-title" style="font-size: 0.95rem; margin-bottom: 16px;">System Integrity</h3>
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <div style="display: flex; align-items: center; gap: 10px;">

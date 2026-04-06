@@ -119,9 +119,17 @@
                 }
 
                 function startExam() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const sessId = urlParams.get('session');
+                    if (!sessId) {
+                        alert('Critical Error: Examination session context lost.');
+                        return;
+                    }
                     const elem = document.documentElement;
                     if (elem.requestFullscreen) elem.requestFullscreen();
-                    setTimeout(() => { window.location.href = "{{ url_for('quiz_interface') }}"; }, 500);
+                    
+                    // Proceed to the core start_exam route (GET will handle creation then redirect to take_exam)
+                    setTimeout(() => { window.location.href = "/exam/" + sessId + "/start"; }, 500);
                 }
 
                 document.addEventListener('DOMContentLoaded', startCamera);

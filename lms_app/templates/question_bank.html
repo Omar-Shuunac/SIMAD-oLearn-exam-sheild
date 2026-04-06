@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% set active_page = 'dashboard' %}
+
+{% block title %}Question Bank - SIMAD oLearn{% endblock %}
+{% block header_title %}Global Question Bank HQ{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="card" style="margin-bottom: 24px; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <h2 style="margin: 0;">My Questions</h2>
+                <p style="color: #666; font-size: 0.9rem;">Manage, tag, and organize assessments.</p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <form action="{{ url_for('question_bank') }}" method="GET" style="display: flex; gap: 8px; margin: 0;">
+                    <select name="course_id" onchange="this.form.submit()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 0.88rem;">
+                        <option value="">All Courses</option>
+                        {% for c in courses %}
+                        <option value="{{ c.id }}" {{ 'selected' if request.args.get('course_id')|int == c.id }}>{{ c.code }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+                <a href="{{ url_for('add_bank_question') }}" class="btn-primary" style="padding: 8px 16px; border-radius: 8px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    New Question
+                </a>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                <thead>
+                    <tr style="text-align: left; border-bottom: 2px solid #f0f0f0;">
+                        <th style="padding: 12px 16px; font-size: 0.85rem; color: #888;">Question Text</th>
+                        <th style="padding: 12px 16px; font-size: 0.85rem; color: #888;">Type</th>
+                        <th style="padding: 12px 16px; font-size: 0.85rem; color: #888;">Course</th>
+                        <th style="padding: 12px 16px; font-size: 0.85rem; color: #888;">Points</th>
+                        <th style="padding: 12px 16px; font-size: 0.85rem; color: #888;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for q in questions %}
+                    <tr style="border-bottom: 1px solid #f5f5f5; transition: background 0.2s;">
+                        <td style="padding: 16px; font-size: 0.95rem; font-weight: 500;">
+                            {{ q.text[:80] }}{{ '...' if q.text|length > 80 }}
+                        </td>
+                        <td style="padding: 16px;">
+                            <span class="stat-pill" style="background: #f0f4f8; color: #444;">{{ q.q_type|upper }}</span>
+                        </td>
+                        <td style="padding: 16px; font-size: 0.88rem; color: #666;">
+                            {{ q.course.code if q.course else 'N/A' }}
+                        </td>
+                        <td style="padding: 16px; font-weight: 700; color: var(--simad-blue);">
+                            {{ q.points }} pts
+                        </td>
+                        <td style="padding: 16px;">
+                            <div style="display: flex; gap: 10px;">
+                                <a href="#" style="color: var(--simad-blue);"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></a>
+                                <a href="#" style="color: #cc0000;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="padding: 40px; text-align: center; color: #aaa;">
+                            <p style="font-size: 1.2rem;">No questions found.</p>
+                            <a href="{{ url_for('create_quiz') }}" class="btn-primary" style="margin-top: 15px; display: inline-block;">Create Your First Question</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

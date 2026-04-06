@@ -2,94 +2,89 @@
 
 {% block title %}Provision Quiz - SIMAD oLearn{% endblock %}
 
-{% block header_title %}Identity Shield: Advanced Provisioning{% endblock %}
+{% block header_title %}Assessment Identity Shield Builder{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 1000px; margin: 0 auto; padding: 40px;">
+<div class="card" style="max-width: 900px; margin: 0 auto; padding: 40px;">
     <form action="/instructor/create_quiz" method="POST" id="quizForm">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
-            <h2>Assessment Identity & Type</h2>
-            <span class="badge badge-success">SHIELD V2.0 ACTIVATED</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="margin: 0; color: var(--simad-blue);">Assessment Definition Tool</h2>
+            <span class="badge badge-success" style="background: #e8f5e9; color: #15803d; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">PRO-GRADE BUILDER</span>
         </div>
 
-        <div class="form-group" style="margin-bottom: 24px;">
-            <label class="form-label">Assessment Title</label>
-            <input type="text" name="title" class="form-control" placeholder="e.g. Midterm: Cryptography & Security"
-                required>
-        </div>
-
-        <hr style="border: none; border-top: 1px solid #eee; margin: 32px 0;">
-
-        <h3>Item Definition</h3>
-        <div class="form-group" style="margin-top: 20px;">
-            <label class="form-label">Question Text</label>
-            <textarea name="question_text" class="form-control" rows="3" placeholder="Enter your prompt here..."
-                required></textarea>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
             <div class="form-group">
-                <label class="form-label">Question Type</label>
-                <select name="q_type" id="qTypeSelect" class="form-control" onchange="toggleTypeUI()">
+                <label class="form-label" style="font-weight: 600; display: block; margin-bottom: 8px;">Assessment Title</label>
+                <input type="text" name="title" class="form-control" placeholder="e.g. Midterm: Data Structures" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd;" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" style="font-weight: 600; display: block; margin-bottom: 8px;">Select Course</label>
+                <select name="course_id" class="form-control" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd;" required>
+                    <option value="">-- Select Course --</option>
+                    {% for course in courses %}
+                    <option value="{{ course.id }}">{{ course.code }} - {{ course.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid #f0f0f0; margin: 30px 0;">
+
+        <h3 style="font-size: 1.1rem; margin-bottom: 20px;">Identity-Verifiable Question Item</h3>
+        
+        <div class="form-group" style="margin-bottom: 24px;">
+            <label class="form-label" style="font-weight: 600; display: block; margin-bottom: 8px;">Question Template Text</label>
+            <textarea name="question_text" class="form-control" rows="4" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd;" placeholder="Enter the prompt students will see..." required></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+            <div class="form-group">
+                <label class="form-label" style="font-weight: 600; display: block; margin-bottom: 8px;">Assessment Logic</label>
+                <select name="q_type" id="qTypeSelect" class="form-control" onchange="toggleTypeUI()" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
                     <option value="multiple_choice">Multiple Choice (Single Answer)</option>
-                    <option value="short_answer">Short Answer (Manual Grading)</option>
-                    <option value="matching">Matching Pairs (Identity Check)</option>
-                    <option value="drag_drop">Sequence / Drag & Drop</option>
+                    <option value="short_answer">Short Answer (Critical Review)</option>
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label">Weight (Points)</label>
-                <input type="number" name="points" class="form-control" value="10">
+                <label class="form-label" style="font-weight: 600; display: block; margin-bottom: 8px;">Max Points Weight</label>
+                <input type="number" name="points" class="form-control" value="10" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
             </div>
         </div>
 
-        <!-- Dynamic Type Config UI -->
-        <div id="mcq-config" class="type-config"
-            style="margin-top: 30px; padding: 24px; background: #fafafa; border-radius: 8px;">
-            <p style="font-weight: 600; margin-bottom: 16px;">Define Choices</p>
-            <div id="choices-list" style="display: grid; gap: 10px;">
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" name="choice_1" class="form-control" placeholder="Option A (Correct)"
-                        style="flex: 1;">
-                    <input type="checkbox" checked onclick="return false;"> Correct
+        <!-- MCQ Config -->
+        <div id="mcq-config" class="type-config" style="padding: 24px; background: #f8f9ff; border-radius: 12px; border: 1px solid #e0e7ff; margin-bottom: 30px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <span style="font-weight: 700; color: #444;">Option Set (One Correct)</span>
+                <span style="font-size: 0.75rem; color: #666; font-style: italic;">Select the radio button for the correct answer.</span>
+            </div>
+            <div id="choices-list" style="display: grid; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <input type="radio" name="correct_choice" value="1" checked style="width: 20px; height: 20px; accent-color: var(--simad-blue);">
+                    <input type="text" name="choice_1" class="form-control" placeholder="Option 1" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #ddd;" required>
                 </div>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" name="choice_2" class="form-control" placeholder="Option B" style="flex: 1;">
-                    <input type="checkbox" onclick="return false;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <input type="radio" name="correct_choice" value="2" style="width: 20px; height: 20px; accent-color: var(--simad-blue);">
+                    <input type="text" name="choice_2" class="form-control" placeholder="Option 2" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #ddd;" required>
                 </div>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" name="choice_3" class="form-control" placeholder="Option C" style="flex: 1;">
-                    <input type="checkbox" onclick="return false;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <input type="radio" name="correct_choice" value="3" style="width: 20px; height: 20px; accent-color: var(--simad-blue);">
+                    <input type="text" name="choice_3" class="form-control" placeholder="Option 3" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <input type="radio" name="correct_choice" value="4" style="width: 20px; height: 20px; accent-color: var(--simad-blue);">
+                    <input type="text" name="choice_4" class="form-control" placeholder="Option 4" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
                 </div>
             </div>
         </div>
 
-        <div id="matching-config" class="type-config"
-            style="display: none; margin-top: 30px; padding: 24px; background: #f0f7ff; border-radius: 8px;">
-            <p style="font-weight: 600; margin-bottom: 16px;">Define Matching Pairs</p>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <input type="text" class="form-control" placeholder="Term (e.g. RSA)">
-                <input type="text" class="form-control" placeholder="Match (e.g. Asymmetric)">
-                <input type="text" class="form-control" placeholder="Term (e.g. AES)">
-                <input type="text" class="form-control" placeholder="Match (e.g. Symmetric)">
-            </div>
-            <p style="font-size: 0.8rem; color: #666; margin-top: 10px;">Note: Matching configuration is stored as
-                structured JSON in Neon.</p>
+        <div id="short-answer-config" class="type-config" style="display: none; padding: 24px; background: #fffbeb; border-radius: 12px; border: 1px solid #fef3c7; margin-bottom: 30px;">
+            <p style="font-weight: 700; color: #92400e; margin-bottom: 10px;">Short Answer Engine Monitoring</p>
+            <p style="font-size: 0.85rem; color: #b45309; line-height: 1.5;">This item type will trigger the SHIELD focus-loss protection. Students' keystrokes and focus patterns will be tracked to identify high-confidence flags during free-form entry.</p>
         </div>
 
-        <div id="short-answer-config" class="type-config"
-            style="display: none; margin-top: 30px; padding: 24px; background: #fffbe6; border-radius: 8px;">
-            <p style="font-weight: 600; margin-bottom: 16px;">Short Answer Guidelines</p>
-            <input type="text" class="form-control" placeholder="System keywords (optional, comma separated)">
-            <p style="font-size: 0.8rem; color: #856404; margin-top: 10px;">System will capture rich text and log focus
-                loss during typing.</p>
-        </div>
-
-        <div style="margin-top: 40px; display: flex; gap: 20px;">
-            <button type="button" class="btn-primary" style="background: #eee; color: #333;"
-                onclick="history.back()">Discard Changes</button>
-            <button type="submit" class="btn-primary" style="flex: 1; background: var(--simad-blue);">Activate
-                Assessment 🛡️</button>
+        <div style="display: flex; gap: 15px; margin-top: 20px;">
+            <button type="button" class="btn-primary" style="background: transparent; border: 1px solid #ccc; color: #666; font-weight: 600; padding: 14px 25px;" onclick="history.back()">Cancel</button>
+            <button type="submit" class="btn-primary" style="flex: 1; padding: 14px; font-weight: 700; font-size: 1rem; background: var(--simad-blue); box-shadow: 0 4px 10px rgba(0,31,61,0.2);">Provision To Question Bank & Exam 🚀</button>
         </div>
     </form>
 </div>
@@ -101,8 +96,6 @@
 
         if (selected === 'multiple_choice') {
             document.getElementById('mcq-config').style.display = 'block';
-        } else if (selected === 'matching') {
-            document.getElementById('matching-config').style.display = 'block';
         } else if (selected === 'short_answer') {
             document.getElementById('short-answer-config').style.display = 'block';
         }

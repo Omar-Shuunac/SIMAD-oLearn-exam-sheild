@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SIMAD oLearn{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+
+    <!-- Shared Sidebar -->
+    <aside class="sidebar">
+        <div class="brand" style="margin-bottom: 30px;">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="SIMAD oLearn" style="width: 100%; max-width: 220px; height: auto; object-fit: contain;">
+        </div>
+        <ul class="nav-menu">
+
+            <!-- Dashboard (all roles) -->
+            <li class="nav-item">
+                <a href="{{ url_for('dashboard') }}" class="{{ 'active' if active_page == 'dashboard' else '' }}">
+                    ≡ƒÅá Dashboard
+                </a>
+            </li>
+
+            {% if session.role == 'student' %}
+            <li class="nav-item"><a href="{{ url_for('courses') }}">≡ƒôÜ My Courses</a></li>
+            <li class="nav-item"><a href="{{ url_for('exams') }}">≡ƒ¢í∩╕Å Shield Exams</a></li>
+            <li class="nav-item"><a href="{{ url_for('calendar') }}">≡ƒôà Calendar</a></li>
+
+            {% elif session.role == 'instructor' %}
+            <li class="nav-item"><a href="{{ url_for('create_course') }}">≡ƒÅ½ New Course</a></li>
+            <li class="nav-item"><a href="{{ url_for('create_quiz') }}">≡ƒô¥ Create Quiz</a></li>
+            <li class="nav-item"><a href="{{ url_for('create_announcement') }}">≡ƒôó Announce</a></li>
+
+            {% elif session.role == 'sys_admin' %}
+            <li class="nav-item"><a href="{{ url_for('create_announcement') }}">≡ƒôó Announcements</a></li>
+            <li class="nav-item"><a href="#" style="color: #aaa; pointer-events: none;">≡ƒ¢░∩╕Å API Connect</a></li>
+
+            {% elif session.role == 'exam_admin' %}
+            <li class="nav-item"><a href="{{ url_for('manage_policies') }}">≡ƒô£ Policy Engine</a></li>
+            <li class="nav-item"><a href="{{ url_for('integrity_review') }}">ΓÜû∩╕Å Integrity Desk</a></li>
+            {% endif %}
+
+            <!-- Common bottom links -->
+            <li class="nav-item"><a href="{{ url_for('support') }}">≡ƒÆ¼ Support</a></li>
+            <li class="nav-item"><a href="{{ url_for('settings') }}">ΓÜÖ∩╕Å Settings</a></li>
+            <li class="nav-item" style="margin-top: auto;">
+                <a href="{{ url_for('logout') }}" style="color: var(--danger);">≡ƒÜ¬ Sign Out</a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <header>
+            <div class="section-title">
+                {% block header_title %}{% endblock %}
+            </div>
+            <div class="user-profile">
+                <span class="badge badge-secondary" style="margin-right: 12px; font-size: 0.7rem;">
+                    {{ session.role | upper }}
+                </span>
+                <span style="font-weight: 600;">{{ session.user_name }}</span>
+                <div class="avatar">{{ session.user_name[:2].upper() }}</div>
+            </div>
+        </header>
+
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

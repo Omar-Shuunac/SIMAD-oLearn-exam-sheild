@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% set active_page = 'database' %}
+
+{% block title %}Super User Database Console - SIMAD oLearn{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Super User Database Authority</h1>
+        <p>Direct DDL/DML interface for institution-wide data lifecycle management.</p>
+    </div>
+
+    <!-- SQL Console -->
+    <div class="card-modular" style="border-left: 5px solid #ff4d4d;">
+        <div class="card-title" style="color: #b91c1c;">Direct Query Engine</div>
+        <form method="POST" style="margin-top: 20px;">
+            <textarea name="sql_query" placeholder="Enter raw SQL (SELECT, UPDATE, INSERT, DELETE, ALTER...)" 
+                style="width: 100%; height: 150px; padding: 15px; border: 1px solid #fecaca; border-radius: 12px; font-family: 'Courier New', Courier, monospace; font-size: 0.95rem; background: #fffcfc; color: #1a1a1a; margin-bottom: 20px;"></textarea>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.75rem; color: #b91c1c; font-weight: 600;">⚠️ CAUTION: EXECUTION IS PERMANENT & LOGGED</span>
+                <button type="submit" class="btn-primary" style="background: #b91c1c; padding: 12px 30px; font-weight: 700;">Execute Transaction</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Area -->
+    {% if error %}
+    <div class="card-modular" style="background: #fff5f5; border: 1px solid #feb2b2; margin-top: 30px;">
+        <div style="color: #c53030; font-weight: 700; margin-bottom: 10px;">SQL Error:</div>
+        <code style="font-size: 0.85rem; color: #742a2a;">{{ error }}</code>
+    </div>
+    {% endif %}
+
+    {% if result %}
+    <div class="card-modular" style="margin-top: 30px; padding: 0; overflow: auto;">
+        <div style="padding: 20px; border-bottom: 1px solid #f0f0f0; background: #f9fafb;">
+            <h3 style="margin: 0; font-size: 1rem;">Execution Result</h3>
+        </div>
+        
+        {% if columns %}
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+            <thead>
+                <tr style="background: #f3f4f6;">
+                    {% for col in columns %}
+                    <th style="padding: 12px 20px; color: #4b5563; border-bottom: 1px solid #e5e7eb;">{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in result %}
+                <tr style="border-bottom: 1px solid #f3f4f6;">
+                    {% for cell in row %}
+                    <td style="padding: 12px 20px; color: #1f2937;">{{ cell }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="padding: 30px; color: #15803d; font-weight: 600;">
+            {{ result }}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

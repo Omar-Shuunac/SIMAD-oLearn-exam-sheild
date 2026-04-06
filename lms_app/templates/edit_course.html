@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Edit Course Settings | SIMAD oLearn{% endblock %}
+{% block header_title %}Course Settings: {{ course.code }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+    <h2 style="margin-top: 0; color: var(--simad-blue);">⚙️ Update Metadata</h2>
+    <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px;">Adjusting settings for <strong>{{ course.code }}: {{ course.title }}</strong>.</p>
+
+    <form method="POST">
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem;">Course Code</label>
+        <input type="text" name="code" required value="{{ course.code }}" placeholder="e.g. CS101"
+            style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; font-size: 1rem; box-sizing: border-box;">
+
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem;">Course Title</label>
+        <input type="text" name="title" required value="{{ course.title }}" placeholder="Intro to Programming"
+            style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; font-size: 1rem; box-sizing: border-box;">
+
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem;">Course Description Preview</label>
+        <textarea name="description" rows="4" placeholder="Brief overview of the curriculum..."
+            style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 24px; font-size: 1rem; box-sizing: border-box; font-family: inherit;">{{ course.description or '' }}</textarea>
+
+        <div style="display: flex; gap: 15px; margin-top: 10px;">
+            <button type="submit" class="btn-primary" style="flex: 1; padding: 14px; font-size: 1.05rem;">Save Changes</button>
+            <a href="{{ url_for('course_detail', id=course.id) }}" class="btn-primary" style="flex: 1; text-align: center; background: transparent; border: 1px solid #ccc; color: #666; padding: 14px; font-size: 1.05rem;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

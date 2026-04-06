@@ -27,7 +27,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max upload
 from models import (db, User, Course, ExamPolicy, ExamSession, AuditLog,
                     ExamAttempt, IntegrityFlag, Question, Choice, Enrollment,
                     IdentityVerification, Module, Assignment, Submission,
-                    Announcement, ModuleView)
+                    Announcement, ModuleView, ExamQuestion)
 db.init_app(app)
 
 
@@ -177,13 +177,17 @@ def dashboard():
         stats = {
             'total_users': User.query.count(),
             'total_courses': Course.query.count(),
+            'total_enrollments': Enrollment.query.count(),
+            'pending_flags': IntegrityFlag.query.count(),
             'audit_logs': AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(10).all()
         }
-        recent_users = User.query.order_by(User.id.desc()).limit(10).all()
+        all_users = User.query.order_by(User.id.desc()).all()
+        all_courses = Course.query.all()
         platform_announcements = Announcement.query.filter_by(course_id=None).order_by(
             Announcement.created_at.desc()).limit(5).all()
         return render_template('sys_admin_dashboard.html', stats=stats,
-                               recent_users=recent_users,
+                               all_users=all_users,
+                               all_courses=all_courses,
                                announcements=platform_announcements)
 
     elif role == 'exam_admin':
@@ -195,15 +199,50 @@ def dashboard():
         return render_template('exam_admin_dashboard.html', stats=exam_stats)
 
     elif role == 'instructor':
-        courses = Course.query.filter_by(instructor_id=session['user_id']).all()
+        course_filter = request.args.get('course_id', type=int)
+        
+        all_courses = Course.query.filter_by(instructor_id=session['user_id']).all()
+        
+        if course_filter:
+            courses = [c for c in all_courses if c.id == course_filter]
+            my_course_ids = [course_filter]
+        else:
+            courses = all_courses
+            my_course_ids = [c.id for c in all_courses]
+            
         pending_submissions = (Submission.query
                                .join(Assignment, Submission.assignment_id == Assignment.id)
                                .join(Course, Assignment.course_id == Course.id)
                                .filter(Course.instructor_id == session['user_id'])
-                               .filter(Submission.grade == None)
-                               .count())
-        return render_template('instructor_dashboard.html', courses=courses,
-                               pending_submissions=pending_submissions)
+                               .filter(Submission.grade == None))
+        
+        if course_filter:
+            pending_submissions = pending_submissions.filter(Assignment.course_id == course_filter)
+        
+        pending_submissions_count = pending_submissions.count()
+                               
+        # Recent activity (AuditLogs for this user)
+        recent_logs = AuditLog.query.filter_by(user_id=session['user_id']).order_by(AuditLog.timestamp.desc()).limit(5).all()
+        
+        # Global question bank count
+        questions_count = Question.query.filter_by(author_id=session['user_id']).count()
+
+        # Instructor Flags Review Queue
+        flags_query = (IntegrityFlag.query
+                 .join(ExamAttempt, IntegrityFlag.attempt_id == ExamAttempt.id)
+                 .join(ExamSession, ExamAttempt.session_id == ExamSession.id)
+                 .filter(ExamSession.course_id.in_(my_course_ids) if my_course_ids else False)
+                 .filter(IntegrityFlag.resolution == None))
+                 
+        flags = flags_query.order_by(IntegrityFlag.timestamp.desc()).limit(5).all()
+
+        return render_template('instructor_dashboard.html', 
+                               courses=all_courses,
+                               current_filter=course_filter,
+                               pending_submissions=pending_submissions_count,
+                               flags=flags,
+                               recent_logs=recent_logs,
+                               questions_count=questions_count)
 
     else:  # student
         enrollments = Enrollment.query.filter_by(user_id=session['user_id']).all()
@@ -277,11 +316,17 @@ def course_detail():
                      .order_by(Announcement.is_pinned.desc(), Announcement.created_at.desc())
                      .all())
 
+    # Provide all students for instructor enrollment UI dropdown
+    all_students = []
+    if session.get('role') in ['instructor', 'sys_admin']:
+        all_students = User.query.filter_by(role='student').order_by(User.name).all()
+
     return render_template('course-detail.html',
                            course=course,
                            active_module=active_module,
                            submitted_ids=submitted_assignment_ids,
                            announcements=announcements,
+                           all_students=all_students,
                            user=session['user_name'])
 
 
@@ -332,6 +377,83 @@ def add_module(course_id):
         flash(f'Module "{title}" added.', 'success')
         return redirect(url_for('course_detail', id=course_id))
     return render_template('add_module.html', course=course)
+
+
+# ─── Instructor: Edit / Delete Module ──────────────────────────────────────────
+
+@app.route('/instructor/edit_module/<int:mod_id>', methods=['GET', 'POST'])
+@role_required('instructor', 'sys_admin')
+def edit_module(mod_id):
+    mod = Module.query.get_or_404(mod_id)
+    # Ensure they own the course
+    if session.get('role') == 'instructor' and mod.course.instructor_id != session['user_id']:
+        flash('Permission denied.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    if request.method == 'POST':
+        mod.title = request.form.get('title', '').strip()
+        mod.content_type = request.form.get('content_type', 'text')
+        mod.content_url = request.form.get('content_url', '').strip()
+        if mod.content_type == 'text':
+            mod.content_url = request.form.get('content_text', '').strip()
+
+        db.session.commit()
+        log_action(session['user_id'], f"Edited Module: {mod.title}", "Module", mod.id)
+        flash('Module updated successfully.', 'success')
+        return redirect(url_for('course_detail', id=mod.course_id, mod=mod.id))
+    return render_template('edit_module.html', module=mod, course=mod.course)
+
+
+@app.route('/instructor/delete_module/<int:mod_id>', methods=['POST'])
+@role_required('instructor', 'sys_admin')
+def delete_module(mod_id):
+    mod = Module.query.get_or_404(mod_id)
+    course_id = mod.course_id
+    if session.get('role') == 'instructor' and mod.course.instructor_id != session['user_id']:
+        flash('Permission denied.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    db.session.delete(mod)
+    db.session.commit()
+    log_action(session['user_id'], f"Deleted Module: {mod.title}", "Module", mod_id)
+    flash('Module deleted.', 'info')
+    return redirect(url_for('course_detail', id=course_id))
+
+
+# ─── Instructor: Edit / Delete Course ──────────────────────────────────────────
+
+@app.route('/instructor/edit_course/<int:course_id>', methods=['GET', 'POST'])
+@role_required('instructor', 'sys_admin')
+def edit_course(course_id):
+    course = Course.query.get_or_404(course_id)
+    if session.get('role') == 'instructor' and course.instructor_id != session['user_id']:
+        flash('Permission denied.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    if request.method == 'POST':
+        course.code = request.form.get('code', '').strip().upper()
+        course.title = request.form.get('title', '').strip()
+        course.description = request.form.get('description', '').strip()
+        db.session.commit()
+        log_action(session['user_id'], f"Edited Course: {course.code}", "Course", course.id)
+        flash('Course settings updated.', 'success')
+        return redirect(url_for('course_detail', id=course.id))
+    return render_template('edit_course.html', course=course)
+
+
+@app.route('/instructor/delete_course/<int:course_id>', methods=['POST'])
+@role_required('instructor', 'sys_admin')
+def delete_course(course_id):
+    course = Course.query.get_or_404(course_id)
+    if session.get('role') == 'instructor' and course.instructor_id != session['user_id']:
+        flash('Permission denied.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    db.session.delete(course)
+    db.session.commit()
+    log_action(session['user_id'], f"Deleted Course: {course.code}", "Course", course_id)
+    flash('Course permanently deleted.', 'warning')
+    return redirect(url_for('dashboard'))
 
 
 # ─── Instructor: Add Assignment ───────────────────────────────────────────────
@@ -525,34 +647,116 @@ def create_announcement():
 # QUIZ / EXAM
 # ═══════════════════════════════════════════════════════════════════════════════
 
-@app.route('/instructor/create_quiz', methods=['GET', 'POST'])
+@app.route('/instructor/builder', methods=['GET', 'POST'])
 @role_required('instructor')
-def create_quiz():
+def exam_builder():
+    my_courses = Course.query.filter_by(instructor_id=session['user_id']).all()
+    q_bank = Question.query.filter_by(author_id=session['user_id']).all()
+    
     if request.method == 'POST':
-        title  = request.form.get('title')
-        q_text = request.form.get('question_text')
-        q_type = request.form.get('q_type', 'multiple_choice')
-        points = int(request.form.get('points', 10))
+        # 1. Capture Header Details
+        title = request.form.get('title')
+        course_id = request.form.get('course_id', type=int)
+        exam_type = request.form.get('exam_type', 'quiz') # quiz, midterm, final
+        weight = request.form.get('weight', 10.0, type=float)
+        
+        # Security Defaults based on type
+        is_shield_on = (exam_type in ['midterm', 'final'])
+        attempts = 1 if exam_type in ['midterm', 'final'] else 2
+        
+        start_time = datetime.strptime(request.form.get('start_time'), '%Y-%m-%dT%H:%M')
+        end_time = datetime.strptime(request.form.get('end_time'), '%Y-%m-%dT%H:%M')
+        duration = int(request.form.get('duration_mins', 60))
 
-        new_exam = ExamSession(title=title, start_time=datetime.utcnow(), end_time=datetime.utcnow())
-        db.session.add(new_exam)
+        # 2. Initialize Session
+        new_sess = ExamSession(
+            title=title,
+            course_id=course_id,
+            exam_type=exam_type,
+            weight=weight,
+            start_time=start_time,
+            end_time=end_time,
+            duration_mins=duration,
+            attempts_allowed=attempts,
+            status='scheduled',
+            created_by=session['user_id']
+        )
+        db.session.add(new_sess)
         db.session.flush()
 
-        q = Question(session_id=new_exam.id, text=q_text, q_type=q_type, points=points)
+        # 3. Process Sectioned Questions (Import or New)
+        # We expect a JSON list of questions or form arrays
+        imported_ids = request.form.getlist('bank_question_ids')
+        for q_id in imported_ids:
+            # Import existing question from bank
+            eq = ExamQuestion(session_id=new_sess.id, question_id=int(q_id), section_name="Imported Items")
+            db.session.add(eq)
+
+        # Handle new dynamic question added in builder (Simple v1)
+        q_text = request.form.get('new_q_text')
+        if q_text:
+            q_type = request.form.get('new_q_type', 'multiple_choice')
+            new_q = Question(author_id=session['user_id'], course_id=course_id, text=q_text, q_type=q_type, points=10)
+            db.session.add(new_q)
+            db.session.flush()
+            eq = ExamQuestion(session_id=new_sess.id, question_id=new_q.id, section_name="Newly Authored")
+            db.session.add(eq)
+            
+            if q_type == 'multiple_choice':
+                correct_idx = request.form.get('correct_choice')
+                for i in range(1, 4):
+                    choice_text = request.form.get(f'choice_{i}')
+                    if choice_text:
+                        db.session.add(Choice(question_id=new_q.id, text=choice_text, is_correct=(str(i) == correct_idx)))
+
+        db.session.commit()
+        log_action(session['user_id'], f"Authored {exam_type}: {title}", "ExamSession", new_sess.id)
+        flash(f'{exam_type.title()} "{title}" successfully built & scheduled.', 'success')
+        return redirect(url_for('dashboard'))
+
+    return render_template('exam_builder.html', courses=my_courses, q_bank=q_bank)
+    
+    
+@app.route('/instructor/question_bank/add', methods=['GET', 'POST'])
+@role_required('instructor')
+def add_bank_question():
+    my_courses = Course.query.filter_by(instructor_id=session['user_id']).all()
+    if request.method == 'POST':
+        # Simple bank-only addition
+        q_text    = request.form.get('question_text')
+        q_type    = request.form.get('q_type', 'multiple_choice')
+        points    = int(request.form.get('points', 10))
+        course_id = request.form.get('course_id', type=int)
+
+        q = Question(author_id=session['user_id'], course_id=course_id, text=q_text, q_type=q_type, points=points)
         db.session.add(q)
         db.session.flush()
 
         if q_type == 'multiple_choice':
-            for i in range(1, 5):
+            correct_idx = request.form.get('correct_choice')
+            for i in range(1, 4):
                 choice_text = request.form.get(f'choice_{i}')
                 if choice_text:
-                    c = Choice(question_id=q.id, text=choice_text, is_correct=(i == 1))
-                    db.session.add(c)
-
+                    db.session.add(Choice(question_id=q.id, text=choice_text, is_correct=(str(i) == correct_idx)))
+        
         db.session.commit()
-        flash('Quiz created successfully!', 'success')
-        return redirect(url_for('dashboard'))
-    return render_template('create_quiz.html')
+        log_action(session['user_id'], "Added Question to Bank", "Question", q.id)
+        flash('Question added to your global bank.', 'success')
+        return redirect(url_for('question_bank'))
+
+    return render_template('add_bank_question.html', courses=my_courses)
+
+@app.route('/instructor/question_bank')
+@role_required('instructor', 'sys_admin')
+def question_bank():
+    q_filter = request.args.get('course_id', type=int)
+    if q_filter:
+        questions = Question.query.filter_by(course_id=q_filter).all()
+    else:
+        questions = Question.query.filter_by(author_id=session['user_id']).all()
+    
+    my_courses = Course.query.filter_by(instructor_id=session['user_id']).all()
+    return render_template('question_bank.html', questions=questions, courses=my_courses)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -646,17 +850,17 @@ def enroll_student():
     course_id  = request.form.get('course_id', type=int)
     if not student_id or not course_id:
         flash('Student and course are required.', 'danger')
-        return redirect(url_for('dashboard'))
+        return redirect(request.referrer or url_for('dashboard'))
     if Enrollment.query.filter_by(user_id=student_id, course_id=course_id).first():
         flash('Student is already enrolled.', 'warning')
-        return redirect(url_for('dashboard'))
+        return redirect(request.referrer or url_for('dashboard'))
     enrollment = Enrollment(user_id=student_id, course_id=course_id)
     db.session.add(enrollment)
     db.session.commit()
     log_action(session['user_id'], f"Enrolled Student {student_id} in Course {course_id}",
                "Enrollment", enrollment.id)
     flash('Student enrolled successfully.', 'success')
-    return redirect(url_for('dashboard'))
+    return redirect(request.referrer or url_for('dashboard'))
 
 
 
@@ -697,11 +901,6 @@ def support():
     return render_template('support.html')
 
 
-@app.route('/settings.html')
-@login_required
-def settings():
-    user = User.query.get(session['user_id'])
-    return render_template('settings.html', user=user)
 
 
 @app.route('/calendar.html')
@@ -1130,6 +1329,70 @@ def exams():
                            scheduled_sessions=scheduled_sessions,
                            past_attempts=past_attempts,
                            attempt_map=attempt_session_ids)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SUPER ADMIN GLOBAL MANAGEMENT
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route('/admin/users')
+@role_required('sys_admin')
+def manage_users():
+    users = User.query.order_by(User.id.desc()).all()
+    return render_template('manage_users.html', users=users)
+
+@app.route('/admin/courses')
+@role_required('sys_admin')
+def manage_courses():
+    courses = Course.query.all()
+    return render_template('manage_courses.html', courses=courses)
+
+@app.route('/admin/enrollments')
+@role_required('sys_admin')
+def manage_enrollments():
+    enroll_list = Enrollment.query.all()
+    return render_template('manage_enrollments.html', enrollments=enroll_list)
+
+@app.route('/settings')
+@login_required
+def settings():
+    user = User.query.get(session['user_id'])
+    return render_template('settings.html', user=user)
+
+
+# --- SUPER USER DATABASE AUTHORITY (DDL/DML/DCL) ---
+@app.route('/admin/database', methods=['GET', 'POST'])
+@role_required('sys_admin')
+def admin_database():
+    query_result = None
+    query_error = None
+    column_names = []
+    
+    if request.method == 'POST':
+        raw_sql = request.form.get('sql_query', '').strip()
+        if raw_sql:
+            try:
+                # Log the raw SQL execution for traceability
+                log_action(session['user_id'], f"Executed Raw SQL: {raw_sql[:200]}...", "Database", reason="Super User Authority")
+                
+                # Execute query
+                result = db.session.execute(db.text(raw_sql))
+                
+                if raw_sql.lower().startswith(('select', 'show', 'describe')):
+                    column_names = result.keys()
+                    query_result = result.fetchall()
+                else:
+                    db.session.commit()
+                    query_result = f"Command executed effectively. Rows affected: {result.rowcount}"
+                    
+            except Exception as e:
+                db.session.rollback()
+                query_error = str(e)
+                
+    return render_template('admin_database.html', 
+                           result=query_result, 
+                           error=query_error,
+                           columns=column_names)
 
 
 # ─── Run ───────────────────────────────────────────────────────────────────────

@@ -72,6 +72,32 @@
                     style="text-align: center; font-size: 0.82rem; padding: 9px 12px; background: #6366f1;">
                     📢 Post Notice
                 </a>
+                
+                <p style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #888; margin: 12px 0 4px; text-align: center;">Course Settings</p>
+                
+                <!-- Quick Enroll Student -->
+                <form action="/admin/enroll_student" method="POST" style="margin: 0; display: flex; flex-direction: column; gap: 6px;">
+                    <input type="hidden" name="course_id" value="{{ course.id }}">
+                    <select name="student_id" required style="padding: 7px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.82rem; background: #fafafa;">
+                        <option value="">-- Select Student to Enroll --</option>
+                        {% for student in all_students %}
+                        <option value="{{ student.id }}">{{ student.name }} ({{ student.email }})</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn-primary" style="width: 100%; text-align: center; font-size: 0.82rem; padding: 7px 12px; background: transparent; border: 1px solid var(--simad-gold); color: var(--simad-gold); cursor: pointer;">
+                        ➕ Enroll Student
+                    </button>
+                </form>
+
+                <a href="/instructor/edit_course/{{ course.id }}" class="btn-primary"
+                    style="text-align: center; font-size: 0.82rem; padding: 7px 12px; background: transparent; border: 1px solid var(--simad-blue); color: var(--simad-blue); margin-top: 4px;">
+                    ⚙️ Edit Course Metadata
+                </a>
+                <form action="/instructor/delete_course/{{ course.id }}" method="POST" onsubmit="return confirm('WARNING: This will permanently delete this course and all its modules/assignments. Are you absolutely sure?');" style="margin: 0;">
+                    <button type="submit" class="btn-primary" style="width: 100%; text-align: center; font-size: 0.82rem; padding: 7px 12px; background: transparent; border: 1px solid #cc0000; color: #cc0000; cursor: pointer;">
+                        ⚠️ Delete Course
+                    </button>
+                </form>
             </div>
             {% endif %}
         </div>
@@ -82,24 +108,157 @@
         {% if active_module %}
         <div class="card" style="padding: 36px;">
             <!-- Module header -->
-            <div style="margin-bottom: 28px;">
-                <span style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px;
-                             color: var(--simad-blue); font-weight: 600;">Module</span>
-                <h2 style="font-size: 1.4rem; margin-top: 6px;">{{ active_module.title }}</h2>
+            <div style="margin-bottom: 28px; display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <span style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px;
+                                 color: var(--simad-blue); font-weight: 600;">Module</span>
+                    <h2 style="font-size: 1.4rem; margin-top: 6px;">{{ active_module.title }}</h2>
+                </div>
+                
+                {% if session.role in ['instructor', 'sys_admin'] %}
+                <div style="display: flex; gap: 8px;">
+                    <a href="/instructor/edit_module/{{ active_module.id }}" class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem; background: #f0f4f8; color: var(--simad-blue); border: 1px solid #cce0ff;">✏️ Edit Module</a>
+                    <form action="/instructor/delete_module/{{ active_module.id }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this module?');" style="margin: 0;">
+                        <button type="submit" class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem; background: #fff5f5; color: #cc0000; border: 1px solid #ffcccc; cursor: pointer;">🗑️ Delete</button>
+                    </form>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Video -->
             {% if active_module.content_type == 'video' and active_module.content_url %}
-            <div style="aspect-ratio: 16/9; background: #000; border-radius: 12px;
-                        margin-bottom: 28px; overflow: hidden;">
+            <div id="videoWrapper" style="background: #000; border-radius: 12px; margin-bottom: 28px; overflow: hidden; display: flex; flex-direction: column;">
+                <div style="position: relative; padding-top: 56.25%; width: 100%;">
+                    {% if 'youtube.com' in active_module.content_url or 'youtu.be' in active_module.content_url %}
+                    <div id="ytplayer"></div>
+                    <div id="videoOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; z-index: 5;">
+                        <!-- Top Bar Blocker (Hides YouTube Title dropdown when paused) -->
+                        <div id="ytTopBlocker" style="position: absolute; top: 0; left: 0; right: 0; height: 60px; background: #000; z-index: 10; pointer-events: none;"></div>
+                        <!-- Bottom Right Blocker (Hides YouTube Watermark) -->
+                        <div style="position: absolute; bottom: 5px; right: 5px; width: 90px; height: 45px; background: #000; z-index: 10; pointer-events: none;"></div>
+                    </div>
+                    {% else %}
+                    <video controls style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                        <source src="{{ active_module.content_url }}">
+                        Your browser does not support video playback.
+                    </video>
+                    {% endif %}
+                </div>
+                
                 {% if 'youtube.com' in active_module.content_url or 'youtu.be' in active_module.content_url %}
-                <iframe width="100%" height="100%" frameborder="0" allowfullscreen
-                    src="{{ active_module.content_url | replace('watch?v=', 'embed/') }}"></iframe>
-                {% else %}
-                <video controls style="width: 100%; height: 100%;">
-                    <source src="{{ active_module.content_url }}">
-                    Your browser does not support video playback.
-                </video>
+                <div class="custom-video-controls" style="display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: #1a1a1a; color: white;">
+                    <button id="playPauseBtn" style="background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem;">▶</button>
+                    <div id="videoProgress" style="flex: 1; height: 6px; background: #444; border-radius: 4px; position: relative; cursor: pointer;">
+                        <div id="videoProgressBar" style="width: 0%; height: 100%; background: var(--simad-blue); border-radius: 4px; position: relative;">
+                            <div style="width: 12px; height: 12px; background: white; border-radius: 50%; position: absolute; right: -6px; top: -3px; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>
+                        </div>
+                    </div>
+                    <span id="videoTime" style="font-size: 0.85rem; font-variant-numeric: tabular-nums; opacity: 0.8;">0:00 / 0:00</span>
+                    <button id="muteBtn" style="background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem;">🔊</button>
+                    <button id="fullscreenBtn" style="background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem;">⛶</button>
+                </div>
+                <!-- Load YouTube IFrame Player API -->
+                <script src="https://www.youtube.com/iframe_api"></script>
+                <script>
+                    var player, timeUpdater;
+                    var ytUrl = "{{ active_module.content_url|safe }}";
+                    var videoIdMatch = ytUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                    var videoId = (videoIdMatch && videoIdMatch[1]) ? videoIdMatch[1] : null;
+
+                    function onYouTubeIframeAPIReady() {
+                        if(!videoId) return;
+                        var originHost = window.location.protocol + '//' + window.location.host;
+                        player = new YT.Player('ytplayer', {
+                            height: '100%',
+                            width: '100%',
+                            videoId: videoId,
+                            playerVars: {
+                                'controls': 0,
+                                'disablekb': 1,
+                                'rel': 0,
+                                'modestbranding': 1,
+                                'fs': 0,
+                                'iv_load_policy': 3,
+                                'playsinline': 1,
+                                'origin': originHost
+                            },
+                            events: {
+                                'onReady': onPlayerReady,
+                                'onStateChange': onPlayerStateChange,
+                                'onError': function(e){ console.error('YT Error:', e.data); }
+                            }
+                        });
+                        // Fix style properties overridden by API
+                        document.getElementById('ytplayer').style.position = 'absolute';
+                        document.getElementById('ytplayer').style.top = '0';
+                        document.getElementById('ytplayer').style.left = '0';
+                        document.getElementById('ytplayer').style.pointerEvents = 'none';
+                    }
+                    function onPlayerReady(event) { updateTimeDisplay(); }
+                    function onPlayerStateChange(event) {
+                        var playBtn = document.getElementById('playPauseBtn');
+                        if (event.data == YT.PlayerState.PLAYING) {
+                            playBtn.innerHTML = '⏸';
+                            timeUpdater = setInterval(updateProgressBar, 100);
+                        } else {
+                            playBtn.innerHTML = '▶';
+                            clearInterval(timeUpdater);
+                        }
+                    }
+                    function togglePlay() {
+                        if (player && typeof player.getPlayerState === 'function') {
+                            if (player.getPlayerState() == YT.PlayerState.PLAYING) {
+                                player.pauseVideo();
+                            } else {
+                                player.playVideo();
+                            }
+                        }
+                    }
+                    document.getElementById('playPauseBtn').addEventListener('click', togglePlay);
+                    document.getElementById('videoOverlay').addEventListener('click', togglePlay);
+                    document.getElementById('muteBtn').addEventListener('click', function() {
+                        if (player.isMuted()) {
+                            player.unMute();
+                            this.innerHTML = '🔊';
+                        } else {
+                            player.mute();
+                            this.innerHTML = '🔇';
+                        }
+                    });
+                    var progCont = document.getElementById('videoProgress');
+                    progCont.addEventListener('click', function(e) {
+                        var rect = progCont.getBoundingClientRect();
+                        var percent = (e.clientX - rect.left) / rect.width;
+                        player.seekTo(player.getDuration() * percent, true);
+                    });
+                    document.getElementById('fullscreenBtn').addEventListener('click', function() {
+                        var wrapper = document.getElementById('videoWrapper');
+                        if (!document.fullscreenElement) {
+                            wrapper.requestFullscreen().catch(err => { console.log(err); });
+                        } else {
+                            document.exitFullscreen();
+                        }
+                    });
+                    function updateProgressBar() {
+                        var d = player.getDuration();
+                        var c = player.getCurrentTime();
+                        if (d > 0) {
+                            document.getElementById('videoProgressBar').style.width = ((c / d) * 100) + '%';
+                        }
+                        updateTimeDisplay(c, d);
+                    }
+                    function formatTime(s) {
+                        if (!s || isNaN(s)) return "0:00";
+                        var m = Math.floor(s / 60);
+                        var sec = Math.floor(s % 60);
+                        return m + ':' + (sec < 10 ? '0' : '') + sec;
+                    }
+                    function updateTimeDisplay(c, d) {
+                        c = c || (player.getCurrentTime ? player.getCurrentTime() : 0);
+                        d = d || (player.getDuration ? player.getDuration() : 0);
+                        document.getElementById('videoTime').innerHTML = formatTime(c) + ' / ' + formatTime(d);
+                    }
+                </script>
                 {% endif %}
             </div>
 

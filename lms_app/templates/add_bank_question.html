@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Add Question to Bank | SIMAD oLearn{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto; padding: 40px; border-radius: 16px;">
+    <h2 style="margin-bottom: 30px; color: var(--simad-blue);">📥 Item Bank: New Entry</h2>
+    
+    <form action="{{ url_for('add_bank_question') }}" method="POST">
+        <div class="form-group" style="margin-bottom: 24px;">
+            <label class="form-label" style="font-weight: 700;">Question Prompt</label>
+            <textarea name="question_text" class="form-control" rows="4" placeholder="Enter the question text here..." required style="width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #ddd;"></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+            <div class="form-group">
+                <label class="form-label" style="font-weight: 700;">Logic Type</label>
+                <select name="q_type" id="qTypeSelect" class="form-control" onchange="toggleTypeUI()" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd;">
+                    <option value="multiple_choice">Multiple Choice (Auto-Grade)</option>
+                    <option value="short_answer">Short Answer (Manual Review)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" style="font-weight: 700;">Base Points</label>
+                <input type="number" name="points" value="10" class="form-control" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd;">
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 30px;">
+            <label class="form-label" style="font-weight: 700;">Associate Course (Optional Filter)</label>
+            <select name="course_id" class="form-control" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd;">
+                <option value="">-- Generic / Global --</option>
+                {% for course in courses %}
+                <option value="{{ course.id }}">{{ course.code }} - {{ course.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- MCQ Options -->
+        <div id="mcq-config" style="background: #f7fafc; padding: 25px; border-radius: 12px; border: 1px solid #edf2f7; margin-bottom: 30px;">
+            <p style="font-weight: 700; margin-bottom: 15px;">Option Set</p>
+            <div style="display: grid; gap: 12px;">
+                {% for i in range(1, 5) %}
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <input type="radio" name="correct_choice" value="{{ i }}" {{ 'checked' if i == 1 }}>
+                    <input type="text" name="choice_{{ i }}" class="form-control" placeholder="Choice {{ i }}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 15px;">
+            <button type="button" class="btn-primary" style="background: transparent; border: 1px solid #ddd; color: #666;" onclick="history.back()">Cancel</button>
+            <button type="submit" class="btn-primary" style="flex: 1; background: var(--simad-blue); padding: 15px; font-weight: 700;">Commit to Item Bank 🚀</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function toggleTypeUI() {
+        const val = document.getElementById('qTypeSelect').value;
+        document.getElementById('mcq-config').style.display = (val === 'multiple_choice' ? 'block' : 'none');
+    }
+</script>
+{% endblock %}
