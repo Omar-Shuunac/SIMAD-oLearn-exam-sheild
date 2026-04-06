@@ -10,6 +10,8 @@ class User(db.Model):
     password_hash = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(50), nullable=False) # 'student', 'instructor', 'sys_admin', 'exam_admin', 'proctor'
     status = db.Column(db.String(20), default='active') # 'active', 'suspended'
+    mfa_enabled = db.Column(db.Boolean, default=False)
+    mfa_secret = db.Column(db.String(100), nullable=True)
     
     # Relationships
     enrollments = db.relationship('Enrollment', backref='student', lazy=True)
@@ -151,6 +153,7 @@ class ExamAttempt(db.Model):
     submitted_at = db.Column(db.DateTime, nullable=True)
 
     answers_json = db.Column(db.Text, nullable=True)
+    flags_json = db.Column(db.Text, nullable=True)
     score = db.Column(db.Float, nullable=True)
     max_score = db.Column(db.Float, nullable=True)
 
@@ -298,3 +301,32 @@ class ModuleView(db.Model):
     module_id = db.Column(db.Integer, db.ForeignKey('module.id'), nullable=False)
     viewed_at = db.Column(db.DateTime, default=datetime.utcnow)
     completed = db.Column(db.Boolean, default=False)
+
+# ─── Course Interaction ───────────────────────────────────────────────────────
+
+class Bookmark(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    module_id = db.Column(db.Integer, db.ForeignKey('module.id'), nullable=True)
+    title = db.Column(db.String(200), nullable=True)
+    url = db.Column(db.String(500), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class StudentNote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=True)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+# ─── Security & MFA ───────────────────────────────────────────────────────────
+
+class LoginSession(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    session_token = db.Column(db.String(255), unique=True, nullable=False)
+    ip_address = db.Column(db.String(45))
+    device_info = db.Column(db.String(200))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_active = db.Column(db.Boolean, default=True)

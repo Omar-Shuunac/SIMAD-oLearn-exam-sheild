@@ -57,11 +57,42 @@
                 </div>
             </div>
 
+            <div class="card-modular">
+                <div class="card-title">Security & MFA</div>
+                <form action="{{ url_for('update_security') }}" method="POST" style="margin-top: 15px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <div>
+                            <strong style="display: block; font-size: 0.9rem;">Multi-Factor Auth</strong>
+                            <span style="font-size: 0.75rem; color: #666;">Require 2FA codes at login</span>
+                        </div>
+                        <label class="switch" style="position: relative; display: inline-block; width: 40px; height: 24px;">
+                            <input type="checkbox" name="mfa_enabled" {% if user.mfa_enabled %}checked{% endif %} style="opacity: 0; width: 0; height: 0;">
+                            <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; border-radius: 24px; transition: .4s;">
+                                <!-- Slider dot done via css but we simulate simple checkbox for now if no custom CSS -->
+                                <span style="position: absolute; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; border-radius: 50%;"></span>
+                            </span>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn-primary" style="padding: 8px 16px; font-size: 0.8rem;">Save Security</button>
+                </form>
+
+                <hr style="border: 0; border-top: 1px solid #eaeaea; margin: 20px 0;">
+                <div class="card-title">Active Sessions</div>
+                <div style="margin-top: 10px; font-size: 0.8rem; color: #555;">
+                    <div style="padding: 10px; border-radius: 6px; background: #f9f9f9; margin-bottom: 8px; border: 1px solid #eee;">
+                        <strong>Current Device (This browser)</strong><br>
+                        <span style="color: #888;">IP: 127.0.0.1</span>
+                    </div>
+                </div>
+            </div>
+
+            {% if user.role == 'sys_admin' %}
             <div class="card-modular" style="background: #fff0f0; border-color: #fca5a5;">
                 <div class="card-title" style="color: #b91c1c;">Danger Zone</div>
                 <p style="font-size: 0.8rem; color: #b91c1c; margin-top: 10px;">Warning: You have full database lifecycle authority. These actions cannot be undone.</p>
                 <button onclick="window.location.href='{{ url_for('admin_database') }}';" style="width: 100%; margin-top: 15px; padding: 12px; border: 1px solid #fecaca; border-radius: 10px; background: white; color: #b91c1c; font-weight: 700; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#b91c1c'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='#b91c1c'">Manual Database Flush</button>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>

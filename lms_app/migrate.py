@@ -102,6 +102,41 @@ MIGRATIONS = [
 
     # ModuleView upgrades
     "ALTER TABLE module_view ADD COLUMN IF NOT EXISTS completed BOOLEAN DEFAULT FALSE",
+
+    # Flag Review logic
+    "ALTER TABLE exam_attempt ADD COLUMN IF NOT EXISTS flags_json TEXT",
+
+    # Security & MFA
+    "ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS mfa_enabled BOOLEAN DEFAULT FALSE",
+    "ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS mfa_secret VARCHAR(100)",
+
+    """CREATE TABLE IF NOT EXISTS login_session (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES \"user\"(id),
+        session_token VARCHAR(255) NOT NULL UNIQUE,
+        ip_address VARCHAR(45),
+        device_info VARCHAR(200),
+        created_at TIMESTAMP DEFAULT NOW(),
+        is_active BOOLEAN DEFAULT TRUE
+    )""",
+
+    """CREATE TABLE IF NOT EXISTS bookmark (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES \"user\"(id),
+        module_id INTEGER REFERENCES module(id),
+        title VARCHAR(200),
+        url VARCHAR(500) NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+    )""",
+
+    """CREATE TABLE IF NOT EXISTS student_note (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES \"user\"(id),
+        course_id INTEGER REFERENCES course(id),
+        content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+    )""",
 ]
 
 with app.app_context():
