@@ -9,6 +9,17 @@ def init_db():
         db.drop_all()
         db.create_all()
         
+        # 0. Global Super Admin (super_admin)
+        if not User.query.filter_by(role='super_admin').first():
+            super_admin = User(
+                name='SIMAD Super Authority',
+                email='super.admin@simad.edu.so',
+                password_hash=generate_password_hash('superadmin123', method='pbkdf2:sha256'),
+                role='super_admin'
+            )
+            db.session.add(super_admin)
+            print("Created Super Admin (Login with super.admin@simad.edu.so / superadmin123)")
+
         # 1. Platform/System Admin (sys_admin)
         if not User.query.filter_by(role='sys_admin').first():
             sys_admin = User(

@@ -56,10 +56,11 @@ def role_required(*roles):
         def decorated(*args, **kwargs):
             if 'user_id' not in session:
                 return redirect(url_for('login'))
-            if session.get('role') not in roles:
-                flash('You do not have permission to access that page.', 'danger')
-                return redirect(url_for('dashboard'))
-            return f(*args, **kwargs)
+            user_role = session.get('role')
+            if user_role == 'super_admin' or user_role in roles:
+                return f(*args, **kwargs)
+            flash('You do not have permission to access that page.', 'danger')
+            return redirect(url_for('dashboard'))
         return decorated
     return decorator
 
@@ -154,6 +155,14 @@ def login():
             session['user_id'] = user.id
             session['user_name'] = user.name
             session['role'] = user.role
+            
+            if user.role == 'super_admin':
+                 # Super Admin REQUIRES MFA session elevation
+                 # They get a normal session first, then MUST elevate
+                 log_action(user.id, "Super Admin Login - MFA Required", "Security")
+                 flash('Super Admin login successful. MFA elevation required.', 'warning')
+                 return redirect(url_for('sa_mfa_verify'))
+            
             log_action(user.id, "User Login")
             return redirect(url_for('dashboard'))
         return render_template('login.html', error="Invalid email or password.")
@@ -207,6 +216,9 @@ def logout():
 @login_required
 def dashboard():
     role = session.get('role')
+
+    if role == 'super_admin':
+        return redirect(url_for('super_admin_hub'))
 
     if role == 'sys_admin':
         stats = {
@@ -1731,7 +1743,7 @@ def manage_users():
             role = request.form.get('role', 'student')
             from werkzeug.security import generate_password_hash
             hashed_pwd = generate_password_hash(password, method='pbkdf2:sha256')
-            new_user = User(name=name, email=email, password=hashed_pwd, role=role)
+            new_user = User(name=name, email=email, password_hash=hashed_pwd, role=role)
             db.session.add(new_user)
             db.session.commit()
             log_action(session['user_id'], f"Created user {email}", "User", resource_id=new_user.id)
@@ -1778,7 +1790,7 @@ def import_users():
         email = row.get('email')
         if not User.query.filter_by(email=email).first():
             hashed_pwd = generate_password_hash(row.get('password', 'simad123'), method='pbkdf2:sha256')
-            new_user = User(name=row.get('name'), email=email, password=hashed_pwd, role=row.get('role', 'student'))
+            new_user = User(name=row.get('name'), email=email, password_hash=hashed_pwd, role=row.get('role', 'student'))
             db.session.add(new_user)
             count += 1
     db.session.commit()
