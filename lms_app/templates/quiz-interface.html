@@ -136,6 +136,13 @@
             color: #15803d;
         }
 
+        .q-dot.flagged {
+            border-color: #f4a216;
+            background: #fff7ed;
+            color: #d97706;
+            box-shadow: 0 0 0 2px #f4a216 inset;
+        }
+
         .question-card {
             display: none;
             max-width: 900px;
@@ -263,7 +270,12 @@
         {% for q in questions %}
         <div class="question-card {{ 'active' if loop.first else '' }}" id="q{{ loop.index }}" data-q-id="{{ q.id }}">
             <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
-                <span class="badge badge-secondary">Question {{ loop.index }} / {{ questions | length }}</span>
+                <div>
+                    <span class="badge badge-secondary">Question {{ loop.index }} / {{ questions | length }}</span>
+                    <button type="button" class="btn-primary" style="margin-left: 15px; padding: 4px 12px; background: transparent; color: #f4a216; border: 1px solid #f4a216; font-size: 0.8rem;" onclick="toggleFlag({{ loop.index }}, '{{ q.id }}')" id="flagBtn{{ loop.index }}">
+                        ⚑ Flag for Review
+                    </button>
+                </div>
                 <span style="font-weight: 600; color: var(--simad-blue); font-size: 0.9rem;">
                     {{ q.points }} mark{{ 's' if q.points != 1 }}
                 </span>
@@ -354,6 +366,7 @@
         const ATTEMPT_ID = {{ attempt.id }};
         let currentIdx = 1;
         const answered = new Set();
+        const flagged = new Set();
 
         // Restore already-answered from server
         {% for q in questions %}
@@ -468,10 +481,35 @@
             // Answered count
             document.getElementById('answeredCount').textContent = answered.size;
             // Mark answered dots green
-            answered.forEach(i => {
+            for (let i = 1; i <= TOTAL; i++) {
                 const dot = document.getElementById(`dot${i}`);
-                if (dot) { dot.classList.add('answered'); }
-            });
+                if (dot) {
+                    dot.classList.remove('answered', 'flagged');
+                    if (flagged.has(i)) dot.classList.add('flagged');
+                    else if (answered.has(i)) dot.classList.add('answered');
+                }
+            }
+        }
+
+        function toggleFlag(n, qId) {
+            const btn = document.getElementById(`flagBtn${n}`);
+            if (flagged.has(n)) {
+                flagged.delete(n);
+                btn.style.background = 'transparent';
+                btn.style.color = '#f4a216';
+            } else {
+                flagged.add(n);
+                btn.style.background = '#fcf0d4';
+                btn.style.color = '#b45309';
+            }
+            updateUI();
+            
+            // Auto-save flag state
+            fetch('/api/save_flag', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ attempt_id: ATTEMPT_ID, q_id: qId, is_flagged: flagged.has(n) })
+            }).catch(() => {});
         }
 
         function nextQ() { if (currentIdx < TOTAL) showQ(currentIdx + 1); }

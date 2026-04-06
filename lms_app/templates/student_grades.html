@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% set active_page = 'grades' %}
+
+{% block title %}Results & Grades - SIMAD oLearn{% endblock %}
+{% block header_title %}Results & Grades{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>My Performance</h2>
+        <div style="background: white; padding: 10px 20px; border-radius: 8px; border: 1px solid #ddd;">
+            <strong>Estimated GPA:</strong> <span style="color: #15803d; font-size: 1.2rem;">{{ gpa }}%</span>
+        </div>
+    </div>
+
+    <!-- Course Grades -->
+    <div class="card" style="margin-bottom: 30px;">
+        <h3>Course Grades</h3>
+        <table style="width: 100%; text-align: left; border-collapse: collapse; margin-top: 15px;">
+            <thead>
+                <tr style="border-bottom: 2px solid #eee;">
+                    <th style="padding: 10px;">Course</th>
+                    <th style="padding: 10px;">Progress</th>
+                    <th style="padding: 10px;">Overall Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for enroll in enrollments %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 10px; font-weight: 500;">{{ enroll.course.code }}: {{ enroll.course.title }}</td>
+                    <td style="padding: 10px;">
+                        <div class="progress-bar" style="width: 100px; display: inline-block; vertical-align: middle;">
+                            <div class="progress-fill" style="width: {{ enroll.progress }}%;"></div>
+                        </div>
+                        <span style="font-size: 0.8rem; margin-left: 8px;">{{ enroll.progress }}%</span>
+                    </td>
+                    <td style="padding: 10px; font-weight: bold; color: {{ 'green' if enroll.grade else '#888' }}">
+                        {{ enroll.grade ~ '%' if enroll.grade else 'N/A' }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" style="text-align: center; padding: 20px;">No course enrollments found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Feedback & Assignments -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>Assignment & Exam Feedback</h3>
+            <button class="btn-primary" onclick="window.print()">Download Report</button>
+        </div>
+        <table style="width: 100%; text-align: left; border-collapse: collapse; margin-top: 15px;">
+            <thead>
+                <tr style="border-bottom: 2px solid #eee;">
+                    <th style="padding: 10px;">Assignment</th>
+                    <th style="padding: 10px;">Date</th>
+                    <th style="padding: 10px;">Grade</th>
+                    <th style="padding: 10px;">Feedback</th>
+                    <th style="padding: 10px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in submissions %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 10px;">{{ sub.assignment.title }}</td>
+                    <td style="padding: 10px; font-size: 0.9rem;">{{ sub.submitted_at.strftime('%Y-%m-%d') }}</td>
+                    <td style="padding: 10px; font-weight: bold;">{{ sub.grade }} / {{ sub.assignment.points }}</td>
+                    <td style="padding: 10px; font-size: 0.9rem;">{{ sub.feedback or 'No direct feedback.' }}</td>
+                    <td style="padding: 10px;">
+                        <a href="{{ url_for('student_appeals') }}" style="font-size: 0.8rem; color: #dc2626; text-decoration: none;">Appeal</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" style="text-align: center; padding: 20px;">No graded submissions found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

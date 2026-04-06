@@ -40,8 +40,9 @@
         {% endfor %}
         {% endwith %}
 
-        <!-- Quick exam launch (if enrolled in at least one course) -->
-        {% if enrollments %}
+        <!-- Quick exam launch (if there's a live exam) -->
+        {% set live_exam = upcoming_exams | selectattr('status', 'equalto', 'live') | first %}
+        {% if live_exam %}
         <div class="card exam-shield-card" style="overflow: hidden; margin-bottom: 40px;">
             <div class="exam-info">
                 <div class="exam-status">
@@ -51,8 +52,9 @@
                 <p style="color: var(--text-muted); margin-top: 4px; font-size: 0.88rem;">
                     Start a proctored exam session with identity verification
                 </p>
+                <p style="font-weight: 600; font-size: 0.95rem; margin-top: 5px;">{{ live_exam.title }}</p>
             </div>
-            <a href="{{ url_for('shield_check') }}" class="btn-primary btn-secure" style="text-decoration: none; padding: 12px 20px; font-weight: 600; font-size: 0.9rem; border-radius: 8px;">
+            <a href="{{ url_for('shield_check', session=live_exam.id) }}" class="btn-primary btn-secure" style="text-decoration: none; padding: 12px 20px; font-weight: 600; font-size: 0.9rem; border-radius: 8px;">
                 Launch Exam Shield 🛡️
             </a>
         </div>
@@ -120,6 +122,43 @@
             {% endfor %}
         </div>
         {% endif %}
+
+        <!-- Proactive Alerts Timeline -->
+        <div class="card" style="margin-bottom: 30px;">
+            <h3 class="section-title" style="font-size: 0.95rem; margin-bottom: 16px;">⏱️ Upcoming & Alerts</h3>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                {% if upcoming_exams %}
+                    {% for exam in upcoming_exams %}
+                        <div style="border-left: 3px solid #f4a216; padding-left: 10px;">
+                            <strong style="font-size: 0.85rem; color: #d97706;">Exam: {{ exam.start_time.strftime('%b %d, %H:%M') }}</strong>
+                            <div style="font-size: 0.85rem;">{{ exam.title }}</div>
+                            {% if exam.status == 'live' %}
+                                <a href="{{ url_for('shield_check', session=exam.id) }}" class="btn-primary" style="display: inline-block; margin-top: 6px; font-size: 0.75rem; padding: 4px 10px; background-color: var(--danger); text-decoration: none;">Launch Shield</a>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                {% if deadlines %}
+                    {% for dl in deadlines %}
+                        <div style="border-left: 3px solid #ef4444; padding-left: 10px;">
+                            <strong style="font-size: 0.85rem; color: #dc2626;">Due: {{ dl.due_date.strftime('%b %d, %H:%M') }}</strong>
+                            <div style="font-size: 0.85rem;">{{ dl.title }}</div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                {% if feedback_alerts %}
+                    {% for fb in feedback_alerts %}
+                        <div style="border-left: 3px solid #3b82f6; padding-left: 10px;">
+                            <strong style="font-size: 0.85rem; color: #2563eb;">New Grade!</strong>
+                            <div style="font-size: 0.85rem;">You got {{ fb.grade }} pts.</div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                {% if not upcoming_exams and not deadlines and not feedback_alerts %}
+                    <div style="font-size: 0.85rem; color: #888;">No immediate alerts. You're all caught up!</div>
+                {% endif %}
+            </div>
+        </div>
 
         <!-- Integrity / Status -->
         <div class="card" style="margin-bottom: 30px;">

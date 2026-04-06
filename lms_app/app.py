@@ -255,8 +255,28 @@ def dashboard():
                          )
                          .order_by(Announcement.is_pinned.desc(), Announcement.created_at.desc())
                          .limit(5).all())
+
+        # Proactive Alerts
+        now = datetime.utcnow()
+        upcoming_exams = ExamSession.query.filter(
+            ExamSession.course_id.in_(enrolled_course_ids),
+            ExamSession.status.in_(['scheduled', 'live']),
+            ExamSession.start_time >= now
+        ).order_by(ExamSession.start_time.asc()).limit(3).all()
+
+        deadlines = Assignment.query.filter(
+            Assignment.course_id.in_(enrolled_course_ids),
+            Assignment.due_date >= now
+        ).order_by(Assignment.due_date.asc()).limit(3).all()
+
+        feedback_alerts = Submission.query.filter_by(student_id=session['user_id']).filter(
+            Submission.grade != None
+        ).order_by(Submission.submitted_at.desc()).limit(3).all()
+
         return render_template('index.html', user=session['user_name'],
-                               enrollments=enrollments, announcements=announcements)
+                               enrollments=enrollments, announcements=announcements,
+                               upcoming_exams=upcoming_exams, deadlines=deadlines,
+                               feedback_alerts=feedback_alerts)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1142,7 +1162,27 @@ def save_answer():
     db.session.commit()
     return jsonify({'saved': True}), 200
 
+@app.route('/api/save_flag', methods=['POST'])
+@role_required('student')
+def save_flag():
+    """Auto-save a single question flag state."""
+    data       = request.json
+    attempt_id = data.get('attempt_id')
+    q_id       = str(data.get('q_id'))
+    is_flagged = data.get('is_flagged', False)
 
+    attempt = ExamAttempt.query.get(attempt_id)
+    if not attempt or attempt.student_id != session['user_id']:
+        return jsonify({'error': 'unauthorized'}), 403
+
+    flags = json.loads(attempt.flags_json) if attempt.flags_json else {}
+    if is_flagged:
+        flags[q_id] = True
+    else:
+        flags.pop(q_id, None)
+    attempt.flags_json = json.dumps(flags)
+    db.session.commit()
+    return jsonify({'saved': True}), 200
 @app.route('/exam/submit/<int:attempt_id>', methods=['POST'])
 @role_required('student')
 def submit_exam(attempt_id):
@@ -1394,6 +1434,91 @@ def admin_database():
                            error=query_error,
                            columns=column_names)
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STUDENT ENHANCEMENTS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route('/student/grades.html')
+@role_required('student')
+def student_grades():
+    enrollments = Enrollment.query.filter_by(user_id=session['user_id']).all()
+    submissions = Submission.query.filter_by(student_id=session['user_id']).filter(Submission.grade != None).all()
+    gpa = 0
+    if enrollments:
+        valid_enrollments = [e for e in enrollments if e.grade is not None]
+        if valid_enrollments:
+            total = sum(e.grade for e in valid_enrollments)
+            gpa = total / len(valid_enrollments)
+    return render_template('student_grades.html', enrollments=enrollments, submissions=submissions, gpa=round(gpa, 2))
+
+@app.route('/student/appeals.html', methods=['GET', 'POST'])
+@role_required('student')
+def student_appeals():
+    if request.method == 'POST':
+        reason = request.form.get('reason')
+        new_appeal = GradeAppeal(student_id=session['user_id'], reason=reason)
+        db.session.add(new_appeal)
+        db.session.commit()
+        flash('Appeal submitted successfully.', 'success')
+        return redirect(url_for('student_appeals'))
+    appeals = GradeAppeal.query.filter_by(student_id=session['user_id']).all()
+    return render_template('student_appeals.html', appeals=appeals)
+
+@app.route('/api/bookmark', methods=['POST'])
+@login_required
+def toggle_bookmark():
+    data = request.json
+    url = data.get('url')
+    title = data.get('title', 'Bookmark')
+    module_id = data.get('module_id')
+    existing = Bookmark.query.filter_by(user_id=session['user_id'], url=url).first()
+    if existing:
+        db.session.delete(existing)
+        db.session.commit()
+        return jsonify({"status": "removed"})
+    else:
+        new_bm = Bookmark(user_id=session['user_id'], url=url, title=title, module_id=module_id)
+        db.session.add(new_bm)
+        db.session.commit()
+        return jsonify({"status": "added", "id": new_bm.id})
+
+@app.route('/api/note', methods=['POST'])
+@login_required
+def save_note():
+    data = request.json
+    content = data.get('content')
+    course_id = data.get('course_id')
+    if not content:
+        return jsonify({"error": "Content required"}), 400
+    new_note = StudentNote(user_id=session['user_id'], course_id=course_id, content=content)
+    db.session.add(new_note)
+    db.session.commit()
+    return jsonify({"status": "saved", "id": new_note.id})
+
+@app.route('/api/module/complete/<int:module_id>', methods=['POST'])
+@login_required
+def complete_module(module_id):
+    mv = ModuleView.query.filter_by(user_id=session['user_id'], module_id=module_id).first()
+    if not mv:
+        mv = ModuleView(user_id=session['user_id'], module_id=module_id)
+        db.session.add(mv)
+    mv.completed = True
+    db.session.commit()
+    module = Module.query.get(module_id)
+    if module:
+        recalculate_progress(session['user_id'], module.course_id)
+    return jsonify({"status": "completed"})
+
+@app.route('/student/security', methods=['POST'])
+@login_required
+def update_security():
+    mfa_enabled = request.form.get('mfa_enabled') == 'on'
+    user = User.query.get(session['user_id'])
+    user.mfa_enabled = mfa_enabled
+    db.session.commit()
+    flash('Security settings updated.', 'success')
+    return redirect(url_for('settings'))
 
 # ─── Run ───────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
