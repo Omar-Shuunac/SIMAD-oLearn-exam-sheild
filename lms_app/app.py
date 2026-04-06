@@ -609,7 +609,21 @@ def grade_submission(submission_id):
 # ANNOUNCEMENTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-@app.route('/announcements/create', methods=['GET', 'POST'])
+@app.route('/instructor/submissions')
+@role_required('instructor', 'sys_admin')
+def submissions_list():
+    # Filter by course if in session context
+    course_id = request.args.get('course_id', type=int)
+    
+    query = Submission.query.join(Assignment).join(Course).filter(Course.instructor_id == session['user_id'])
+    
+    if course_id:
+        query = query.filter(Course.id == course_id)
+        
+    submissions = query.filter(Submission.grade == None).order_by(Submission.submitted_at.desc()).all()
+    courses = Course.query.filter_by(instructor_id=session['user_id']).all()
+
+    return render_template('submissions_list.html', submissions=submissions, courses=courses, current_filter=course_id)
 @role_required('instructor', 'sys_admin', 'exam_admin')
 def create_announcement():
     role = session.get('role')
@@ -647,7 +661,22 @@ def create_announcement():
 # QUIZ / EXAM
 # ═══════════════════════════════════════════════════════════════════════════════
 
-@app.route('/instructor/builder', methods=['GET', 'POST'])
+@app.route('/instructor/exams')
+@role_required('instructor')
+def instructor_exams():
+    course_id = request.args.get('course_id', type=int)
+    query = ExamSession.query.filter_by(created_by=session['user_id'])
+    
+    if course_id:
+        query = query.filter_by(course_id=course_id)
+        
+    exams = query.order_by(ExamSession.created_at.desc()).all()
+    courses = Course.query.filter_by(instructor_id=session['user_id']).all()
+    
+    return render_template('instructor_exams.html', exams=exams, courses=courses, current_filter=course_id)
+
+
+@app.route('/instructor/exam_builder', methods=['GET', 'POST'])
 @role_required('instructor')
 def exam_builder():
     my_courses = Course.query.filter_by(instructor_id=session['user_id']).all()

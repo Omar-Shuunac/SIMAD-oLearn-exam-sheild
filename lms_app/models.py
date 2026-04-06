@@ -239,8 +239,8 @@ class Assignment(db.Model):
     points = db.Column(db.Integer, default=100)
     submission_type = db.Column(db.String(50), default='any')  # 'file', 'text', 'link', 'any'
     allow_late = db.Column(db.Boolean, default=False)
-    late_penalty_pct = db.Column(db.Float, default=0.0)
-    grades_released = db.Column(db.Boolean, default=False)
+    weight           = db.Column(db.Float, default=10.0)
+    grades_released  = db.Column(db.Boolean, default=False)
 
 
 class Submission(db.Model):
