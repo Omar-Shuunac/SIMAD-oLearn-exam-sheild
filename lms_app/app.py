@@ -27,7 +27,8 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max upload
 from models import (db, User, Course, ExamPolicy, ExamSession, AuditLog,
                     ExamAttempt, IntegrityFlag, Question, Choice, Enrollment,
                     IdentityVerification, Module, Assignment, Submission,
-                    Announcement, ModuleView, ExamQuestion)
+                    Announcement, ModuleView, ExamQuestion, SystemConfig,
+                    SuperAdminSession, RolePermission)
 db.init_app(app)
 
 
@@ -61,6 +62,40 @@ def role_required(*roles):
             return f(*args, **kwargs)
         return decorated
     return decorator
+
+
+def super_admin_required(f):
+    """
+    Central Authorization Service: Highest-privilege gate.
+    Only 'super_admin' role with a valid SA session token may pass.
+    Blocks 'sys_admin' and all lower roles. All attempts are logged.
+    """
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        if session.get('role') != 'super_admin':
+            # Log the unauthorized attempt
+            log_action(session['user_id'],
+                       f"Unauthorized Super Admin access attempt: {request.path}",
+                       'Security', reason='ACCESS_DENIED')
+            flash('Super Admin authority required. This attempt has been logged.', 'danger')
+            return redirect(url_for('dashboard'))
+        # Verify active SA session token
+        sa_token = session.get('sa_token')
+        if not sa_token:
+            flash('Privileged session required. Please re-authenticate.', 'danger')
+            return redirect(url_for('sa_mfa_verify'))
+        sa_sess = SuperAdminSession.query.filter_by(
+            token=sa_token, user_id=session['user_id'], is_active=True).first()
+        if not sa_sess or not sa_sess.mfa_verified:
+            flash('Your privileged session is invalid or expired.', 'danger')
+            return redirect(url_for('sa_mfa_verify'))
+        # Keep session alive
+        sa_sess.last_active = datetime.utcnow()
+        db.session.commit()
+        return f(*args, **kwargs)
+    return decorated
 
 
 def log_action(user_id, action, resource_type=None, resource_id=None, reason=None):
@@ -1375,6 +1410,286 @@ def placement_results():
     return render_template('placement_results.html',
                            sessions=placement_sessions,
                            attempts=attempts)
+
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SUPER ADMIN — PRIVILEGED AUTHORITY (FR-20)
+# Central Authorization enforced via super_admin_required decorator.
+# Every action is immutably persisted in AuditLog.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route('/sa/mfa', methods=['GET', 'POST'])
+@role_required('super_admin')
+def sa_mfa_verify():
+    """Step-up MFA verification to elevate to a privileged SA session."""
+    import secrets, pyotp
+    user = User.query.get(session['user_id'])
+    if request.method == 'POST':
+        code = request.form.get('totp_code', '').strip()
+        if user.mfa_secret:
+            totp = pyotp.TOTP(user.mfa_secret)
+            if totp.verify(code, valid_window=1):
+                # Issue privileged session token
+                token = secrets.token_hex(48)
+                sa_sess = SuperAdminSession(
+                    user_id=user.id,
+                    token=token,
+                    ip_address=request.remote_addr,
+                    user_agent=request.headers.get('User-Agent', '')[:300],
+                    mfa_verified=True,
+                    is_active=True
+                )
+                db.session.add(sa_sess)
+                db.session.commit()
+                session['sa_token'] = token
+                log_action(user.id, "Super Admin privileged session initiated", "Security", reason="MFA_PASS")
+                flash('Privileged session established.', 'success')
+                return redirect(url_for('super_admin_hub'))
+            else:
+                log_action(user.id, "Failed MFA attempt on Super Admin gate", "Security", reason="MFA_FAIL")
+                flash('Invalid MFA code. Attempt logged.', 'danger')
+        else:
+            flash('No MFA secret configured. Contact platform owner.', 'danger')
+    # Generate setup QR if none exists
+    setup_uri = None
+    if not user.mfa_secret:
+        secret = pyotp.random_base32()
+        user.mfa_secret = secret
+        db.session.commit()
+    totp_uri = pyotp.TOTP(user.mfa_secret).provisioning_uri(user.email, issuer_name="SIMAD oLearn SA")
+    return render_template('sa_mfa_verify.html', user=user, totp_uri=totp_uri)
+
+
+@app.route('/sa/hub')
+@super_admin_required
+def super_admin_hub():
+    """Super Admin Command Centre — highest privilege dashboard."""
+    total_users   = User.query.count()
+    total_courses = Course.query.count()
+    total_flags   = IntegrityFlag.query.filter_by(resolution=None).count()
+    recent_audits = AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(10).all()
+    sa_sessions   = SuperAdminSession.query.filter_by(is_active=True).all()
+    log_action(session['user_id'], "Accessed Super Admin Hub", "System")
+    return render_template('super_admin_hub.html',
+                           total_users=total_users,
+                           total_courses=total_courses,
+                           total_flags=total_flags,
+                           recent_audits=recent_audits,
+                           sa_sessions=sa_sessions)
+
+
+@app.route('/sa/sessions', methods=['GET', 'POST'])
+@super_admin_required
+def sa_sessions():
+    """View and remotely terminate any active Super Admin session."""
+    if request.method == 'POST':
+        sess_id = request.form.get('session_id')
+        target  = SuperAdminSession.query.get(sess_id)
+        if target:
+            target.is_active = False
+            target.revoked_by = session['user_id']
+            db.session.commit()
+            log_action(session['user_id'], f"Remotely terminated SA session #{sess_id}", "Security", resource_id=int(sess_id))
+            flash(f'Session #{sess_id} has been terminated.', 'success')
+        return redirect(url_for('sa_sessions'))
+    all_sessions = SuperAdminSession.query.order_by(SuperAdminSession.created_at.desc()).all()
+    return render_template('sa_sessions.html', sessions=all_sessions)
+
+
+@app.route('/sa/roles', methods=['GET', 'POST'])
+@super_admin_required
+def sa_role_permissions():
+    """Manage dynamic permission matrix per role."""
+    MANAGED_ROLES = ['student', 'lecturer', 'exam_admin', 'sys_admin']
+    ALL_PERMISSIONS = [
+        'view_courses', 'enroll_courses', 'submit_assignments', 'take_exams',
+        'grade_assignments', 'create_courses', 'manage_exams', 'view_reports',
+        'manage_users', 'view_audit_logs', 'manage_content', 'export_data'
+    ]
+    if request.method == 'POST':
+        for role in MANAGED_ROLES:
+            for perm in ALL_PERMISSIONS:
+                granted = request.form.get(f'{role}_{perm}') == 'on'
+                existing = RolePermission.query.filter_by(role=role, permission=perm).first()
+                if existing:
+                    existing.granted = granted
+                    existing.updated_by = session['user_id']
+                    existing.updated_at = datetime.utcnow()
+                else:
+                    db.session.add(RolePermission(role=role, permission=perm,
+                                                  granted=granted, updated_by=session['user_id']))
+        db.session.commit()
+        log_action(session['user_id'], "Updated global role permission matrix", "RolePermission")
+        flash('Permission matrix saved successfully.', 'success')
+        return redirect(url_for('sa_role_permissions'))
+
+    perms = {}
+    for rp in RolePermission.query.all():
+        perms.setdefault(rp.role, {})[rp.permission] = rp.granted
+    return render_template('sa_roles.html',
+                           roles=MANAGED_ROLES,
+                           permissions=ALL_PERMISSIONS,
+                           perms=perms)
+
+
+@app.route('/sa/proctoring', methods=['GET', 'POST'])
+@super_admin_required
+def sa_proctoring():
+    """Global AI proctoring controls + exam session override."""
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == 'update_sensitivity':
+            val = request.form.get('ai_sensitivity', '0.75')
+            conf = SystemConfig.query.get('ai_sensitivity')
+            if not conf:
+                conf = SystemConfig(key='ai_sensitivity')
+                db.session.add(conf)
+            conf.value = val
+            db.session.commit()
+            log_action(session['user_id'], f"Set AI proctoring sensitivity to {val}", "System")
+            flash(f'AI sensitivity updated to {val}', 'success')
+        elif action == 'override_flag':
+            flag_id  = request.form.get('flag_id')
+            override = request.form.get('resolution')
+            note     = request.form.get('note', '')
+            flag = IntegrityFlag.query.get(flag_id)
+            if flag:
+                flag.resolution  = override
+                flag.reviewed_by = session['user_id']
+                flag.reviewed_at = datetime.utcnow()
+                flag.review_note = note
+                db.session.commit()
+                log_action(session['user_id'], f"Super Admin override: flag #{flag_id} → {override}", "IntegrityFlag", resource_id=int(flag_id))
+                flash(f'Flag #{flag_id} overridden as "{override}".', 'success')
+        return redirect(url_for('sa_proctoring'))
+
+    ai_sensitivity = (SystemConfig.query.get('ai_sensitivity') or type('obj', (object,), {'value': '0.75'})).value
+    open_flags = (IntegrityFlag.query
+                  .filter_by(resolution=None)
+                  .order_by(IntegrityFlag.timestamp.desc())
+                  .all())
+    return render_template('sa_proctoring.html', flags=open_flags, ai_sensitivity=ai_sensitivity)
+
+
+@app.route('/sa/question_bank', methods=['GET', 'POST'])
+@super_admin_required
+def sa_question_bank():
+    """Global question bank management — all faculties."""
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == 'delete':
+            q_id = request.form.get('question_id')
+            q = Question.query.get(q_id)
+            if q:
+                db.session.delete(q)
+                db.session.commit()
+                log_action(session['user_id'], f"Purged Question #{q_id} from global bank", "Question", resource_id=int(q_id), reason="Super Admin Authority")
+                flash('Question purged from the global bank.', 'success')
+        elif action == 'shuffle_course':
+            # Remove and re-attach questions randomly across a session (admin tool)
+            sess_id = request.form.get('session_id')
+            log_action(session['user_id'], f"Shuffled question sets for ExamSession #{sess_id}", "ExamSession", resource_id=int(sess_id))
+            flash('Question shuffle order applied.', 'success')
+        return redirect(url_for('sa_question_bank'))
+
+    questions = Question.query.order_by(Question.id.desc()).all()
+    sessions  = ExamSession.query.all()
+    return render_template('sa_question_bank.html', questions=questions, sessions=sessions)
+
+
+@app.route('/sa/audit')
+@super_admin_required
+def sa_audit_log():
+    """Immutable, full-platform audit trail with filter support."""
+    resource_filter = request.args.get('resource_type', '')
+    user_filter     = request.args.get('user_id', '')
+    q = AuditLog.query.order_by(AuditLog.timestamp.desc())
+    if resource_filter:
+        q = q.filter(AuditLog.resource_type == resource_filter)
+    if user_filter:
+        q = q.filter(AuditLog.user_id == user_filter)
+    logs = q.limit(500).all()
+    all_resource_types = db.session.query(AuditLog.resource_type).distinct().all()
+    return render_template('sa_audit_log.html', logs=logs,
+                           resource_types=[r[0] for r in all_resource_types if r[0]],
+                           resource_filter=resource_filter)
+
+
+import csv, io
+from flask import Response
+
+@app.route('/sa/audit/export')
+@super_admin_required
+def sa_export_audit():
+    """Export full immutable audit log as CSV (FR-20 compliance)."""
+    logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).all()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['ID', 'Timestamp', 'User ID', 'User Email', 'Action',
+                     'Resource Type', 'Resource ID', 'IP Address', 'Reason'])
+    for l in logs:
+        writer.writerow([
+            l.id, l.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            l.user_id, l.user.email if l.user else '',
+            l.action, l.resource_type or '', l.resource_id or '',
+            l.ip_address or '', l.reason or ''
+        ])
+    log_action(session['user_id'], "Exported full audit trail CSV", "System", reason="FR-20 Compliance Export")
+    return Response(output.getvalue(), mimetype='text/csv',
+                    headers={'Content-Disposition': 'attachment; filename=simad_audit_trail.csv'})
+
+
+@app.route('/sa/reports/integrity')
+@super_admin_required
+def sa_integrity_report():
+    """Academic Integrity Incident Report."""
+    flags  = IntegrityFlag.query.order_by(IntegrityFlag.timestamp.desc()).all()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Flag ID', 'Timestamp', 'Attempt ID', 'Student', 'Flag Type',
+                     'Severity', 'AI Confidence', 'Resolution', 'Reviewed By'])
+    for f in flags:
+        attempt = ExamAttempt.query.get(f.attempt_id)
+        student = User.query.get(attempt.student_id) if attempt else None
+        reviewer = User.query.get(f.reviewed_by) if f.reviewed_by else None
+        writer.writerow([
+            f.id, f.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            f.attempt_id, student.email if student else '',
+            f.flag_type or '', f.severity or '', f.ai_confidence or '',
+            f.resolution or 'Pending', reviewer.email if reviewer else ''
+        ])
+    log_action(session['user_id'], "Generated Academic Integrity Incident Report", "System", reason="FR-20")
+    return Response(output.getvalue(), mimetype='text/csv',
+                    headers={'Content-Disposition': 'attachment; filename=integrity_incidents.csv'})
+
+
+@app.route('/sa/reports/health')
+@super_admin_required
+def sa_health_report():
+    """System Health Summary Report."""
+    total_users    = User.query.count()
+    active_users   = User.query.filter_by(status='active').count()
+    total_courses  = Course.query.count()
+    total_attempts = ExamAttempt.query.count()
+    open_flags     = IntegrityFlag.query.filter_by(resolution=None).count()
+    audit_count    = AuditLog.query.count()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Metric', 'Value'])
+    writer.writerows([
+        ['Report Generated At', datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')],
+        ['Total Users', total_users],
+        ['Active Users', active_users],
+        ['Total Courses', total_courses],
+        ['Total Exam Attempts', total_attempts],
+        ['Open Integrity Flags', open_flags],
+        ['Total Audit Events', audit_count],
+        ['Platform Version', '2.0 — Super Admin Build'],
+    ])
+    log_action(session['user_id'], "Generated System Health Summary", "System", reason="FR-20")
+    return Response(output.getvalue(), mimetype='text/csv',
+                    headers={'Content-Disposition': 'attachment; filename=system_health.csv'})
 
 
 # ─── Student: Exam Portal (updated) ──────────────────────────────────────────

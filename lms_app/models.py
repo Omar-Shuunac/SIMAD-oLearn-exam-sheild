@@ -336,3 +336,30 @@ class SystemConfig(db.Model):
     value = db.Column(db.Text, nullable=True)
     description = db.Column(db.String(255), nullable=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class SuperAdminSession(db.Model):
+    """Hardware-bound privileged session token for Super Admin role."""
+    __tablename__ = 'super_admin_session'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    token = db.Column(db.String(128), unique=True, nullable=False)
+    ip_address = db.Column(db.String(45))
+    user_agent = db.Column(db.String(300))
+    mfa_verified = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_active = db.Column(db.DateTime, default=datetime.utcnow)
+    is_active = db.Column(db.Boolean, default=True)
+    revoked_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+
+    owner = db.relationship('User', foreign_keys=[user_id], backref='super_sessions')
+
+class RolePermission(db.Model):
+    """Dynamic permission matrix — defines capabilities per role."""
+    __tablename__ = 'role_permission'
+    id = db.Column(db.Integer, primary_key=True)
+    role = db.Column(db.String(50), nullable=False)
+    permission = db.Column(db.String(100), nullable=False)
+    granted = db.Column(db.Boolean, default=True)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+

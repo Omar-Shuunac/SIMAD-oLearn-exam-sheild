@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% set active_page = 'dashboard' %}
+{% block title %}Question Bank — SIMAD oLearn{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>📋 Global Question Bank</h1>
+        <p>Manage all questions across all faculties. Purge policy violations or shuffle exam sets.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for cat, msg in messages %}
+        <div style="padding: 10px 14px; background: #e8f5e9; color: #15803d; border-radius: 8px; margin-bottom: 20px;">✅ {{ msg }}</div>
+        {% endfor %}{% endif %}
+    {% endwith %}
+
+    <div class="card-modular" style="padding: 0; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+            <thead>
+                <tr style="background: #f8fafc;">
+                    <th style="padding: 12px 20px; text-align: left; color: #64748b; font-size: 0.72rem; text-transform: uppercase;">ID</th>
+                    <th style="padding: 12px 20px; text-align: left; color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Question Text</th>
+                    <th style="padding: 12px 20px; text-align: left; color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Points</th>
+                    <th style="padding: 12px 20px; text-align: left; color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Type</th>
+                    <th style="padding: 12px 20px; text-align: left; color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for q in questions %}
+                <tr style="border-top: 1px solid #f1f5f9;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                    <td style="padding: 12px 20px; color: #94a3b8;">#{{ q.id }}</td>
+                    <td style="padding: 12px 20px; max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #1e293b;">{{ q.text }}</td>
+                    <td style="padding: 12px 20px; font-weight: 700; color: #0284c7;">{{ q.points }}</td>
+                    <td style="padding: 12px 20px; color: #64748b;">{{ q.question_type or 'MCQ' }}</td>
+                    <td style="padding: 12px 20px;">
+                        <form method="POST" action="{{ url_for('sa_question_bank') }}" style="margin: 0;"
+                              onsubmit="return confirm('Permanently purge question #{{ q.id }} from the global bank?');">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="question_id" value="{{ q.id }}">
+                            <button type="submit" style="padding: 5px 12px; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 6px; font-size: 0.75rem; cursor: pointer; font-weight: 600;">Purge</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" style="padding: 32px; text-align: center; color: #94a3b8;">No questions in the global bank.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

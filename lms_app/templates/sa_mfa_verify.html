@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% set active_page = 'dashboard' %}
+{% block title %}Super Admin MFA — SIMAD oLearn{% endblock %}
+
+{% block content %}
+<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);">
+    <div style="background: white; border-radius: 20px; padding: 48px; width: 100%; max-width: 440px; box-shadow: 0 25px 80px rgba(0,0,0,0.4);">
+        
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 32px;">
+            <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #dc2626, #991b1b); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 16px;">🔐</div>
+            <h1 style="font-size: 1.4rem; font-weight: 800; color: #0f172a; margin: 0 0 6px;">Privileged Access Gate</h1>
+            <p style="color: #64748b; font-size: 0.85rem; margin: 0;">Super Admin authority requires MFA verification.<br>This session will be hardware-bound and audited.</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}{% for cat, msg in messages %}
+            <div style="padding: 10px 14px; background: #fef2f2; color: #dc2626; border-radius: 8px; margin-bottom: 20px; font-size: 0.85rem;">⚠️ {{ msg }}</div>
+            {% endfor %}{% endif %}
+        {% endwith %}
+
+        <!-- TOTP Entry -->
+        <form method="POST" action="{{ url_for('sa_mfa_verify') }}">
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 8px;">TOTP Code from Authenticator App</label>
+            <input type="text" name="totp_code" placeholder="000000" maxlength="6" autofocus required
+                   style="width: 100%; padding: 16px; font-size: 1.6rem; letter-spacing: 0.4em; text-align: center; border: 2px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; font-weight: 700; color: #0f172a; outline: none;"
+                   oninput="if(this.value.length===6) this.form.submit()">
+            <button type="submit" style="width: 100%; padding: 14px; margin-top: 16px; background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer;">
+                🔐 Verify & Enter Privileged Zone
+            </button>
+        </form>
+
+        <!-- QR Code Setup hint -->
+        <div style="margin-top: 24px; padding: 16px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+            <p style="font-size: 0.75rem; color: #64748b; margin: 0 0 8px; font-weight: 600;">SETUP: Scan with Google Authenticator / Authy</p>
+            <div id="qrContainer"></div>
+            <p style="font-size: 0.7rem; color: #94a3b8; margin: 8px 0 0; word-break: break-all;">URI: <code style="font-size: 0.68rem;">{{ totp_uri }}</code></p>
+        </div>
+
+        <p style="text-align: center; font-size: 0.75rem; color: #94a3b8; margin-top: 20px;">
+            Logged in as <strong>{{ user.email }}</strong> · <a href="{{ url_for('logout') }}" style="color: #dc2626;">Sign Out</a>
+        </p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<script>
+    QRCode.toCanvas(document.getElementById('qrContainer'), {{ totp_uri | tojson }}, {width: 160}, () => {});
+</script>
+{% endblock %}

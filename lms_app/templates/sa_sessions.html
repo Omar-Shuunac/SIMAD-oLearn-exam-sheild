@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% set active_page = 'dashboard' %}
+{% block title %}SA Sessions — SIMAD oLearn{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>🔐 Privileged Session Management</h1>
+        <p>View, audit, and remotely terminate any active Super Admin session.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for cat, msg in messages %}
+        <div style="padding: 10px 14px; background: #e8f5e9; color: #15803d; border-radius: 8px; margin-bottom: 20px;">✅ {{ msg }}</div>
+        {% endfor %}{% endif %}
+    {% endwith %}
+
+    <div class="card-modular" style="padding: 0; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+            <thead>
+                <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                    <th style="padding: 14px 20px; color: #64748b; font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">ID</th>
+                    <th style="padding: 14px 20px; color: #64748b; font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">User</th>
+                    <th style="padding: 14px 20px; color: #64748b; font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">IP Address</th>
+                    <th style="padding: 14px 20px; color: #64748b; font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">MFA</th>
+                    <th style="padding: 14px 20px; color: #64748b; font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">Created</th>
+                    <th style="padding: 14px 20px; color: #64748b; font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">Last Active</th>
+                    <th style="padding: 14px 20px; color: #64748b; font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">Status</th>
+                    <th style="padding: 14px 20px; color: #64748b; font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sessions %}
+                <tr style="border-bottom: 1px solid #f1f5f9;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                    <td style="padding: 14px 20px; color: #94a3b8;">#{{ s.id }}</td>
+                    <td style="padding: 14px 20px;">
+                        <div style="font-weight: 600; color: #1e293b;">{{ s.owner.name if s.owner else '?' }}</div>
+                        <div style="font-size: 0.72rem; color: #94a3b8;">{{ s.owner.email if s.owner else '' }}</div>
+                    </td>
+                    <td style="padding: 14px 20px; font-family: monospace; color: #475569;">{{ s.ip_address or '—' }}</td>
+                    <td style="padding: 14px 20px;">
+                        {% if s.mfa_verified %}
+                        <span style="background: #d1fae5; color: #065f46; padding: 3px 8px; border-radius: 5px; font-size: 0.72rem; font-weight: 700;">✓ Verified</span>
+                        {% else %}
+                        <span style="background: #fef3c7; color: #92400e; padding: 3px 8px; border-radius: 5px; font-size: 0.72rem; font-weight: 700;">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 14px 20px; color: #64748b; font-size: 0.8rem;">{{ s.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td style="padding: 14px 20px; color: #64748b; font-size: 0.8rem;">{{ s.last_active.strftime('%H:%M:%S') }}</td>
+                    <td style="padding: 14px 20px;">
+                        {% if s.is_active %}
+                        <span style="background: #d1fae5; color: #065f46; padding: 3px 8px; border-radius: 5px; font-size: 0.72rem; font-weight: 700;">Active</span>
+                        {% else %}
+                        <span style="background: #fee2e2; color: #991b1b; padding: 3px 8px; border-radius: 5px; font-size: 0.72rem; font-weight: 700;">Terminated</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 14px 20px;">
+                        {% if s.is_active %}
+                        <form method="POST" action="{{ url_for('sa_sessions') }}" style="margin:0;" onsubmit="return confirm('Terminate session #{{ s.id }}? The user will be immediately logged out.');">
+                            <input type="hidden" name="session_id" value="{{ s.id }}">
+                            <button type="submit" style="padding: 5px 12px; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 6px; font-size: 0.75rem; cursor: pointer; font-weight: 600;">Terminate</button>
+                        </form>
+                        {% else %}
+                        <span style="font-size: 0.75rem; color: #94a3b8;">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" style="padding: 32px; text-align: center; color: #94a3b8;">No sessions found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

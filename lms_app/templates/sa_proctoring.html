@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% set active_page = 'dashboard' %}
+{% block title %}Proctor Override — SIMAD oLearn{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>🛡️ Global Proctoring Override</h1>
+        <p>Adjust AI sensitivity and override individual exam integrity flags platform-wide.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for cat, msg in messages %}
+        <div style="padding: 10px 14px; background: #e8f5e9; color: #15803d; border-radius: 8px; margin-bottom: 20px;">✅ {{ msg }}</div>
+        {% endfor %}{% endif %}
+    {% endwith %}
+
+    <!-- AI Sensitivity Control -->
+    <div class="card-modular" style="margin-bottom: 24px;">
+        <h3 style="margin: 0 0 6px;">🎛️ AI Sensitivity Level</h3>
+        <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 20px;">Threshold for what constitutes an AI-detected integrity violation (0 = permissive, 1 = strict).</p>
+        <form method="POST" action="{{ url_for('sa_proctoring') }}" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+            <input type="hidden" name="action" value="update_sensitivity">
+            <div style="flex: 1; max-width: 400px;">
+                <input type="range" name="ai_sensitivity" min="0" max="1" step="0.05" value="{{ ai_sensitivity }}"
+                       oninput="document.getElementById('sensVal').textContent = parseFloat(this.value).toFixed(2)"
+                       style="width: 100%; accent-color: #7c3aed; height: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #94a3b8; margin-top: 4px;">
+                    <span>0.0 (Permissive)</span><span id="sensVal" style="font-weight: 700; color: #7c3aed;">{{ ai_sensitivity }}</span><span>1.0 (Maximum)</span>
+                </div>
+            </div>
+            <button type="submit" class="btn-primary" style="padding: 10px 20px;">Set Sensitivity</button>
+        </form>
+    </div>
+
+    <!-- Open Integrity Flags -->
+    <div class="card-modular" style="padding: 0; overflow: hidden;">
+        <div style="padding: 20px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; font-size: 1rem;">🚨 Open Integrity Flags ({{ flags|length }})</h3>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+            <thead>
+                <tr style="background: #f8fafc;">
+                    <th style="padding: 12px 20px; text-align: left; color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Flag</th>
+                    <th style="padding: 12px 20px; text-align: left; color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Type</th>
+                    <th style="padding: 12px 20px; text-align: left; color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Severity</th>
+                    <th style="padding: 12px 20px; text-align: left; color: #64748b; font-size: 0.72rem; text-transform: uppercase;">AI Confidence</th>
+                    <th style="padding: 12px 20px; text-align: left; color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Timestamp</th>
+                    <th style="padding: 12px 20px; text-align: left; color: #64748b; font-size: 0.72rem; text-transform: uppercase;">SA Override</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in flags %}
+                <tr style="border-top: 1px solid #f1f5f9;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                    <td style="padding: 12px 20px; color: #94a3b8;">#{{ f.id }}</td>
+                    <td style="padding: 12px 20px; font-weight: 600; color: #1e293b;">{{ f.flag_type or 'Unknown' }}</td>
+                    <td style="padding: 12px 20px;">
+                        <span style="padding: 3px 8px; border-radius: 5px; font-size: 0.72rem; font-weight: 700;
+                              background: {{ '#fee2e2' if f.severity == 'high' else ('#fef3c7' if f.severity == 'medium' else '#f0fdf4') }};
+                              color: {{ '#dc2626' if f.severity == 'high' else ('#d97706' if f.severity == 'medium' else '#16a34a') }};">
+                            {{ (f.severity or 'low') | capitalize }}
+                        </span>
+                    </td>
+                    <td style="padding: 12px 20px; color: #475569;">{{ '%.0f%%'|format((f.ai_confidence or 0)*100) }}</td>
+                    <td style="padding: 12px 20px; color: #64748b;">{{ f.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td style="padding: 12px 20px;">
+                        <button onclick="document.getElementById('overrideForm{{ f.id }}').style.display='block'; this.style.display='none'"
+                                style="padding: 5px 12px; background: #ede9fe; color: #7c3aed; border: 1px solid #c4b5fd; border-radius: 6px; font-size: 0.75rem; cursor: pointer; font-weight: 600;">Override</button>
+                        <div id="overrideForm{{ f.id }}" style="display: none; margin-top: 8px;">
+                            <form method="POST" action="{{ url_for('sa_proctoring') }}" style="display: flex; flex-direction: column; gap: 6px;">
+                                <input type="hidden" name="action" value="override_flag">
+                                <input type="hidden" name="flag_id" value="{{ f.id }}">
+                                <select name="resolution" style="padding: 5px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 0.8rem;">
+                                    <option value="dismissed">Dismiss</option>
+                                    <option value="confirmed">Confirm Violation</option>
+                                    <option value="escalated">Escalate</option>
+                                </select>
+                                <input type="text" name="note" placeholder="Review note..." style="padding: 5px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 0.8rem;">
+                                <button type="submit" style="padding: 5px 10px; background: #7c3aed; color: white; border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 600;">Apply Override</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" style="padding: 32px; text-align: center; color: #94a3b8;">✅ No open integrity flags.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
