@@ -1,18 +1,18 @@
 :root {
-  /* Brand Colors */
-  --simad-blue: #004a80;
-  /* Deep Academic Blue */
-  --simad-gold: #cdaa3d;
-  /* Prestige Gold */
-  --simad-gold-hover: #b09132;
-  --simad-light-blue: #f0f6fa;
-  --bg-color: #f8f9fa;
+  /* Brand Colors from Light Logo */
+  --simad-blue: #111d2e; /* Logo Navy */
+  --simad-gold: #f4a216; /* Logo Golden Yellow */
+  --simad-gold-hover: #d38b13;
+  --simad-green: #3aae49; /* Logo Green */
+  --simad-light-blue: #f0f6fa; /* Accent light */
+  --bg-color: #f8f9fa; /* Light Background */
+  --card-bg: #ffffff; /* White for cards */
   --text-dark: #1a1a1a;
-  --text-muted: #666;
+  --text-muted: #666666;
   --border-color: #e0e0e0;
-  --success: #28a745;
-  --danger: #dc3545;
-  --warning: #ffc107;
+  --success: #3aae49;
+  --danger: #ef4444;
+  --warning: #f4a216;
 
   /* Spacing */
   --spacing-xs: 4px;
@@ -22,8 +22,8 @@
   --spacing-xl: 32px;
 
   /* Shadows */
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 10px 15px rgba(0, 0, 0, 0.4);
   --card-radius: 12px;
 }
 
@@ -45,7 +45,7 @@ body {
 /* Sidebar */
 .sidebar {
   width: 260px;
-  background-color: white;
+  background-color: var(--card-bg);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
@@ -145,7 +145,7 @@ header {
 
 /* Cards */
 .card {
-  background: white;
+  background: var(--card-bg);
   border-radius: var(--card-radius);
   padding: var(--spacing-lg);
   box-shadow: var(--shadow-sm);
@@ -315,7 +315,7 @@ header {
 
 /* Tables */
 .table-container {
-  background: white;
+  background: var(--card-bg);
   border-radius: var(--card-radius);
   box-shadow: var(--shadow-sm);
   overflow: hidden;

@@ -15,7 +15,7 @@
             min-height: 100vh;
         }
         .register-card {
-            background: white;
+            background: var(--card-bg);
             padding: 44px 40px;
             border-radius: 14px;
             width: 100%;
@@ -38,8 +38,8 @@
 <body>
     <div class="register-card">
         <div class="register-header">
-            <div class="brand" style="justify-content: center; margin-bottom: 10px;">
-                SIMAD <span>oLearn</span>
+            <div class="brand" style="justify-content: center; margin-bottom: 20px;">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="SIMAD oLearn" style="height: auto; width: 100%; max-width: 250px; object-fit: contain;">
             </div>
             <p style="color: #666; font-size: 0.9rem;">Create your student account</p>
         </div>
