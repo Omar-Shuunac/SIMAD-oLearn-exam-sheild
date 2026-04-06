@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% set active_page = 'dashboard' %}
+
+{% block title %}System Settings - SIMAD oLearn{% endblock %}
+{% block header_title %}System Settings{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Global Configurations</h1>
+        <p>Manage environment variables, integrations, and operational rules.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div style="padding: 10px 15px; background: #e8f5e9; color: #15803d; border-radius: 8px; margin-bottom: 20px; border: 1px solid #bbf7d0;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="dashboard-grid" style="grid-template-columns: 1fr;">
+        <div class="card-modular">
+            <h3 style="margin-bottom: 20px;">Environment Variables</h3>
+            <form action="{{ url_for('system_config') }}" method="POST" style="display: flex; flex-direction: column; gap: 15px;">
+                
+                <h4 style="font-size: 0.9rem; color: #666; margin-top: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Branding & Identity</h4>
+                <div style="display: grid; grid-template-columns: 200px 1fr; align-items: center;">
+                    <label style="font-weight: 600; font-size: 0.85rem;">Platform Name</label>
+                    <input type="text" name="platform_name" value="{{ configs.get('platform_name', 'SIMAD oLearn') }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd; width: 100%; max-width: 400px;">
+                </div>
+                <div style="display: grid; grid-template-columns: 200px 1fr; align-items: center;">
+                    <label style="font-weight: 600; font-size: 0.85rem;">Primary Theme Color</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="color" name="theme_color" value="{{ configs.get('theme_color', '#1a3560') }}" style="width: 40px; height: 40px; border-radius: 4px; border: 1px solid #ddd; padding: 0;">
+                        <span style="font-size: 0.8rem; color: #777;">(Used in main banners)</span>
+                    </div>
+                </div>
+
+                <h4 style="font-size: 0.9rem; color: #666; margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Integrations</h4>
+                <div style="display: grid; grid-template-columns: 200px 1fr; align-items: center;">
+                    <label style="font-weight: 600; font-size: 0.85rem;">SMTP Server Host</label>
+                    <input type="text" name="smtp_host" value="{{ configs.get('smtp_host', 'smtp.simad.edu.so') }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd; width: 100%; max-width: 400px;">
+                </div>
+                <div style="display: grid; grid-template-columns: 200px 1fr; align-items: center;">
+                    <label style="font-weight: 600; font-size: 0.85rem;">SSO Authority URL</label>
+                    <input type="text" name="sso_provider" value="{{ configs.get('sso_provider', 'https://sso.simad.edu.so') }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd; width: 100%; max-width: 400px;">
+                </div>
+                <div style="display: grid; grid-template-columns: 200px 1fr; align-items: center;">
+                    <label style="font-weight: 600; font-size: 0.85rem;">CDN Resource URI</label>
+                    <input type="text" name="cdn_uri" value="{{ configs.get('cdn_uri', 'https://cdn.example.com') }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd; width: 100%; max-width: 400px;">
+                </div>
+
+                <h4 style="font-size: 0.9rem; color: #666; margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Localization & Operations</h4>
+                <div style="display: grid; grid-template-columns: 200px 1fr; align-items: center;">
+                    <label style="font-weight: 600; font-size: 0.85rem;">Default Timezone</label>
+                    <input type="text" name="timezone" value="{{ configs.get('timezone', 'Africa/Mogadishu') }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd; width: 100%; max-width: 400px;">
+                </div>
+                <div style="display: grid; grid-template-columns: 200px 1fr; align-items: center;">
+                    <label style="font-weight: 600; font-size: 0.85rem;">Maximum Proctored Sessions</label>
+                    <input type="number" name="max_sessions" value="{{ configs.get('max_sessions', '500') }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd; width: 100%; max-width: 200px;">
+                </div>
+
+                <div style="margin-top: 30px; display: flex; gap: 15px;">
+                    <button type="submit" class="btn-primary" style="padding: 12px 24px;">Deploy Global Settings</button>
+                    <a href="{{ url_for('dashboard') }}" class="btn-primary" style="background: #e2e8f0; color: #475569; padding: 12px 24px; text-decoration: none;">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

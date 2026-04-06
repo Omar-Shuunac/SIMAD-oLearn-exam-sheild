@@ -1404,17 +1404,128 @@ def exams():
 # SUPER ADMIN GLOBAL MANAGEMENT
 # ═══════════════════════════════════════════════════════════════════════════════
 
-@app.route('/admin/users')
+@app.route('/admin/users', methods=['GET', 'POST'])
 @role_required('sys_admin')
 def manage_users():
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == 'create':
+            name = request.form.get('name')
+            email = request.form.get('email')
+            password = request.form.get('password')
+            role = request.form.get('role', 'student')
+            from werkzeug.security import generate_password_hash
+            hashed_pwd = generate_password_hash(password, method='pbkdf2:sha256')
+            new_user = User(name=name, email=email, password=hashed_pwd, role=role)
+            db.session.add(new_user)
+            db.session.commit()
+            log_action(session['user_id'], f"Created user {email}", "User", resource_id=new_user.id)
+            flash('User created successfully.', 'success')
+        elif action == 'delete':
+            user_id = request.form.get('user_id')
+            user_to_delete = User.query.get(user_id)
+            if user_to_delete and user_to_delete.id != session['user_id']:
+                db.session.delete(user_to_delete)
+                db.session.commit()
+                log_action(session['user_id'], f"Deleted user {user_to_delete.email}", "User", resource_id=user_id)
+                flash('User deleted successfully.', 'success')
+        elif action == 'revoke_mfa':
+            user_id = request.form.get('user_id')
+            user = User.query.get(user_id)
+            if user:
+                user.mfa_enabled = False
+                user.mfa_secret = None
+                db.session.commit()
+                log_action(session['user_id'], f"Revoked MFA for {user.email}", "User", resource_id=user_id)
+                flash('MFA revoked.', 'success')
+        
+        return redirect(url_for('manage_users'))
+        
     users = User.query.order_by(User.id.desc()).all()
     return render_template('manage_users.html', users=users)
 
-@app.route('/admin/courses')
+import csv, io
+from flask import Response
+
+@app.route('/admin/users/import', methods=['POST'])
+@role_required('sys_admin')
+def import_users():
+    file = request.files.get('file')
+    if not file:
+        flash('No file uploaded.', 'danger')
+        return redirect(url_for('manage_users'))
+
+    stream = io.StringIO(file.stream.read().decode("UTF8"), newline=None)
+    csv_input = csv.DictReader(stream)
+    count = 0
+    from werkzeug.security import generate_password_hash
+    for row in csv_input:
+        email = row.get('email')
+        if not User.query.filter_by(email=email).first():
+            hashed_pwd = generate_password_hash(row.get('password', 'simad123'), method='pbkdf2:sha256')
+            new_user = User(name=row.get('name'), email=email, password=hashed_pwd, role=row.get('role', 'student'))
+            db.session.add(new_user)
+            count += 1
+    db.session.commit()
+    log_action(session['user_id'], f"Bulk imported {count} users from CSV", "User")
+    flash(f'{count} users imported successfully.', 'success')
+    return redirect(url_for('manage_users'))
+
+@app.route('/admin/courses', methods=['GET', 'POST'])
 @role_required('sys_admin')
 def manage_courses():
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == 'create':
+            n_course = Course(
+                title=request.form.get('title'),
+                code=request.form.get('code'),
+                description=request.form.get('description'),
+                instructor_id=request.form.get('instructor_id') or None,
+                enrollment_cap=request.form.get('enrollment_cap') or None,
+                status=request.form.get('status', 'draft')
+            )
+            db.session.add(n_course)
+            db.session.commit()
+            log_action(session['user_id'], f"Created course {n_course.code}", "Course", resource_id=n_course.id)
+            flash('Course created.', 'success')
+        elif action == 'delete':
+            course_id = request.form.get('course_id')
+            c = Course.query.get(course_id)
+            if c:
+                db.session.delete(c)
+                db.session.commit()
+                log_action(session['user_id'], f"Deleted course {c.code}", "Course", resource_id=course_id)
+                flash('Course deleted.', 'success')
+        elif action == 'edit':
+            course_id = request.form.get('course_id')
+            c = Course.query.get(course_id)
+            if c:
+                c.code = request.form.get('code') or c.code
+                c.title = request.form.get('title') or c.title
+                c.description = request.form.get('description', c.description)
+                c.status = request.form.get('status') or c.status
+                # Only update instructor_id if explicitly chosen — never null it out
+                new_instructor = request.form.get('instructor_id', '').strip()
+                if new_instructor:
+                    c.instructor_id = int(new_instructor)
+                # else: keep existing instructor_id unchanged
+                # Only set cap if provided
+                new_cap = request.form.get('enrollment_cap', '').strip()
+                c.enrollment_cap = int(new_cap) if new_cap else None
+                try:
+                    db.session.commit()
+                    log_action(session['user_id'], f"Edited course {c.code}", "Course", resource_id=course_id)
+                    flash(f'"{c.title}" updated successfully.', 'success')
+                except Exception as e:
+                    db.session.rollback()
+                    flash(f'Update failed: {str(e)[:150]}', 'danger')
+        return redirect(url_for('manage_courses'))
+        
     courses = Course.query.all()
-    return render_template('manage_courses.html', courses=courses)
+    from models import User
+    lecturers = User.query.filter_by(role='lecturer').all()
+    return render_template('manage_courses.html', courses=courses, lecturers=lecturers)
 
 @app.route('/admin/enrollments')
 @role_required('sys_admin')
@@ -1422,12 +1533,93 @@ def manage_enrollments():
     enroll_list = Enrollment.query.all()
     return render_template('manage_enrollments.html', enrollments=enroll_list)
 
+@app.route('/admin/audit/export')
+@role_required('sys_admin')
+def export_audit():
+    logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).all()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['ID', 'Timestamp', 'User', 'Action', 'Target Type', 'Target ID', 'Reason'])
+    for l in logs:
+        writer.writerow([l.id, l.timestamp.strftime('%Y-%m-%d %H:%M:%S'), l.user.email if l.user else l.user_id, l.action, l.target_type, l.target_id, l.reason])
+    
+    log_action(session['user_id'], "Exported full audit log CSV", "System")
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-disposition": "attachment; filename=audit_export.csv"}
+    )
+
+@app.route('/admin/system/config', methods=['GET', 'POST'])
+@role_required('sys_admin')
+def system_config():
+    if request.method == 'POST':
+        for key, val in request.form.items():
+            conf = SystemConfig.query.get(key)
+            if not conf:
+                conf = SystemConfig(key=key)
+                db.session.add(conf)
+            conf.value = val
+        db.session.commit()
+        log_action(session['user_id'], "Updated Global System Configuration", "SystemConfig")
+        flash('System configuration updated successfully.', 'success')
+        return redirect(url_for('system_config'))
+    
+    configs = {c.key: c.value for c in SystemConfig.query.all()}
+    return render_template('admin_system_config.html', configs=configs)
+
+@app.route('/admin/announcements', methods=['GET', 'POST'])
+@role_required('sys_admin')
+def manage_announcements():
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == 'create':
+            n_ann = Announcement(
+                title=request.form.get('title'),
+                body=request.form.get('body'),
+                author_id=session['user_id'],
+                is_pinned=request.form.get('is_pinned') == 'on'
+            )
+            db.session.add(n_ann)
+            db.session.commit()
+            log_action(session['user_id'], f"Posted global announcement: {n_ann.title}", "Announcement", resource_id=n_ann.id)
+            flash('Global announcement published.', 'success')
+        elif action == 'delete':
+            ann_id = request.form.get('announcement_id')
+            a = Announcement.query.get(ann_id)
+            if a:
+                db.session.delete(a)
+                db.session.commit()
+                log_action(session['user_id'], f"Deleted announcement: {a.title}", "Announcement", resource_id=ann_id)
+                flash('Announcement removed.', 'success')
+        return redirect(url_for('manage_announcements'))
+        
+    announcements = Announcement.query.filter_by(course_id=None).order_by(Announcement.created_at.desc()).all()
+    return render_template('admin_announcements.html', announcements=announcements)
+
+@app.route('/admin/content_moderation', methods=['GET', 'POST'])
+@role_required('sys_admin')
+def content_moderation():
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == 'delete_question':
+            q_id = request.form.get('question_id')
+            q = Question.query.get(q_id)
+            if q:
+                db.session.delete(q)
+                db.session.commit()
+                log_action(session['user_id'], f"Moderated/Deleted Question ID {q_id}", "Question", resource_id=q_id, reason="Policy Violation")
+                flash('Question successfully purged from the platform.', 'success')
+        return redirect(url_for('content_moderation'))
+        
+    questions = Question.query.order_by(Question.id.desc()).limit(100).all()
+    return render_template('admin_moderation.html', questions=questions)
+
 @app.route('/settings')
 @login_required
 def settings():
     user = User.query.get(session['user_id'])
     return render_template('settings.html', user=user)
-
 
 # --- SUPER USER DATABASE AUTHORITY (DDL/DML/DCL) ---
 @app.route('/admin/database', methods=['GET', 'POST'])
@@ -1462,6 +1654,7 @@ def admin_database():
                            result=query_result, 
                            error=query_error,
                            columns=column_names)
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

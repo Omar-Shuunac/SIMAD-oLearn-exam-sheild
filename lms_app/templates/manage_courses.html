@@ -5,48 +5,340 @@
 
 {% block content %}
 <div class="dashboard-container">
-    <div class="dashboard-header">
-        <h1>Global Course Directory</h1>
-        <p>Overview and lifecycle control of all courses available on the platform.</p>
+
+    <!-- Page Header -->
+    <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h1>Global Course Directory</h1>
+            <p>Lifecycle control and oversight of all platform courses.</p>
+        </div>
+        <button id="openAddCourseModal" class="btn-primary" style="padding: 12px 24px; font-size: 0.9rem; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.2rem;">+</span> Add New Course
+        </button>
     </div>
 
-    <!-- Courses Grid -->
-    <div class="dashboard-modular-grid">
-        {% for course in courses %}
-        <div class="card-modular" style="display: flex; flex-direction: column; padding: 24px;">
-            <div style="width: 48px; height: 48px; border-radius: 12px; background: #e8f5e9; color: #3aae49; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 20px;">📚</div>
-            <div style="font-size: 0.75rem; color: #a0a0a0; font-weight: 700; text-transform: uppercase;">{{ course.code }}</div>
-            <h3 style="font-size: 1.15rem; font-weight: 700; color: #1a1a1a; margin-top: 6px; margin-bottom: 4px;">{{ course.title }}</h3>
-            <div style="font-size: 0.85rem; color: #888; font-weight: 500;">Instructor: {{ course.instructor_id }}</div> <!-- Phase 2: Pull instructor name -->
-            
-            <div style="margin-top: 30px; display: flex; justify-content: space-between; border-top: 1px solid #f0f0f0; padding-top: 20px;">
-                <div style="display: flex; flex-direction: column;">
-                    <span style="font-size: 0.7rem; color: #a0a0a0; font-weight: 600; text-transform: uppercase;">Enrollment</span>
-                    <span style="font-size: 0.95rem; font-weight: 800; color: #1a1a1a;">--</span>
-                </div>
-                <div style="display: flex; flex-direction: column;">
-                    <span style="font-size: 0.7rem; color: #a0a0a0; font-weight: 600; text-transform: uppercase;">Modules</span>
-                    <span style="font-size: 0.95rem; font-weight: 800; color: #1a1a1a;">{{ course.modules|length }}</span>
-                </div>
-                <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                    <span style="font-size: 0.7rem; color: #a0a0a0; font-weight: 600; text-transform: uppercase;">Status</span>
-                    <span style="font-size: 0.95rem; font-weight: 700; color: #3aae49;">Active</span>
-                </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div style="padding: 12px 16px; background: #e8f5e9; color: #15803d; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #22c55e;">
+                ✅ {{ message }}
             </div>
-            
-            <div style="margin-top: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                <button class="nav-item a active" style="padding: 10px; border-radius: 10px; font-size: 0.8rem; text-decoration: none; border: none; cursor: pointer; text-align: center;">View Detail</button>
-                <button style="padding: 10px; border-radius: 10px; font-size: 0.8rem; border: 1px solid #f0f0f0; background: white; color: #ff4d4d; cursor: pointer; font-weight: 600;">Lock Entry</button>
-            </div>
-        </div>
-        {% endfor %}
-        
-        <!-- Add New Card -->
-        <div class="card-modular" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border: 3px dashed #f0f0f0; background: none; box-shadow: none;">
-            <div style="width: 60px; height: 60px; border-radius: 50%; background: #f0f4f8; color: #1a97f5; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 15px; cursor: pointer;">+</div>
-            <h4 style="font-weight: 700; font-size: 1rem; color: #1a1a1a; margin-bottom: 6px;">New Course</h4>
-            <p style="font-size: 0.8rem; color: #a0a0a0; margin-bottom: 0;">Add to platform directory</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Search + Stats bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+        <input type="text" id="courseSearch" placeholder="🔍  Search by title, code, or instructor…"
+               oninput="filterCourses()"
+               style="padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; width: 300px; outline: none;">
+        <div style="font-size: 0.85rem; color: #64748b; font-weight: 600;">
+            {{ courses|length }} course{{ 's' if courses|length != 1 }} total
         </div>
     </div>
+
+    <!-- Course List -->
+    <div id="courseList" style="display: flex; flex-direction: column; gap: 12px;">
+        {% for course in courses %}
+        {% set instructor = lecturers | selectattr('id', 'equalto', course.instructor_id) | first %}
+        {% set enroll_count = course.enrollments | length if course.enrollments is defined else '--' %}
+
+        <div class="course-row" data-search="{{ (course.title + ' ' + course.code + ' ' + (instructor.name if instructor else ''))|lower }}"
+             style="background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid #f0f4f8; overflow: hidden; transition: box-shadow 0.2s;">
+
+            <!-- Collapsed summary row (clickable) -->
+            <div class="course-summary" onclick="toggleDetail(this)"
+                 style="display: flex; align-items: center; gap: 20px; padding: 18px 24px; cursor: pointer; user-select: none;">
+
+                <!-- Icon -->
+                <div style="width: 46px; height: 46px; border-radius: 10px; background: linear-gradient(135deg, #e8f5e9, #bbf7d0); color: #15803d; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;">📚</div>
+
+                <!-- Main Info -->
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">{{ course.code }}</div>
+                    <div style="font-size: 1rem; font-weight: 700; color: #1e293b; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ course.title }}</div>
+                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">
+                        👤 {{ instructor.name if instructor else 'Unassigned' }}
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div style="display: flex; gap: 30px; text-align: center; flex-shrink: 0;">
+                    <div>
+                        <div style="font-size: 0.65rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Enrolled</div>
+                        <div style="font-size: 1.1rem; font-weight: 800; color: #1e293b;">{{ course.enrollments|length if course.enrollments is defined else '--' }}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.65rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Modules</div>
+                        <div style="font-size: 1.1rem; font-weight: 800; color: #1e293b;">{{ course.modules|length }}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.65rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Status</div>
+                        <div style="font-size: 0.85rem; font-weight: 700;
+                            color: {{ '#15803d' if course.status == 'active' else ('#b45309' if course.status == 'draft' else '#dc2626') }};">
+                            {% if course.status == 'active' %}🟢{% elif course.status == 'draft' %}🟡{% else %}🔴{% endif %}
+                            {{ (course.status or 'draft') | capitalize }}
+                        </div>
+                    </div>
+                    {% if course.enrollment_cap %}
+                    <div>
+                        <div style="font-size: 0.65rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Cap</div>
+                        <div style="font-size: 1.1rem; font-weight: 800; color: #1e293b;">{{ course.enrollment_cap }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Chevron toggle -->
+                <div class="chevron" style="font-size: 1.2rem; color: #94a3b8; transition: transform 0.25s; flex-shrink: 0;">›</div>
+            </div>
+
+            <!-- Expanded detail panel -->
+            <div class="course-detail" style="display: none; border-top: 1px solid #f1f5f9; padding: 24px; background: #fafcff;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; flex-wrap: wrap;">
+
+                    <!-- Left: Full Details -->
+                    <div>
+                        <h4 style="font-size: 0.8rem; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; margin-bottom: 14px;">Course Information</h4>
+                        <table style="width: 100%; font-size: 0.88rem; border-collapse: collapse;">
+                            <tr><td style="padding: 6px 0; color: #64748b; width: 140px;">Course ID</td><td style="font-weight: 600; color: #1e293b;">#{{ course.id }}</td></tr>
+                            <tr><td style="padding: 6px 0; color: #64748b;">Code</td><td style="font-weight: 600; color: #1e293b;">{{ course.code }}</td></tr>
+                            <tr><td style="padding: 6px 0; color: #64748b;">Title</td><td style="font-weight: 600; color: #1e293b;">{{ course.title }}</td></tr>
+                            <tr><td style="padding: 6px 0; color: #64748b;">Instructor</td><td style="font-weight: 600; color: #1e293b;">{{ instructor.name if instructor else '—' }} {% if instructor %}<span style="font-size: 0.75rem; color: #94a3b8;">({{ instructor.email }})</span>{% endif %}</td></tr>
+                            <tr><td style="padding: 6px 0; color: #64748b;">Description</td><td style="font-weight: 500; color: #475569;">{{ course.description or '—' }}</td></tr>
+                            <tr><td style="padding: 6px 0; color: #64748b;">Status</td><td style="font-weight: 700; color: {{ '#15803d' if course.status == 'active' else '#b45309' }};">{{ (course.status or 'draft') | capitalize }}</td></tr>
+                            <tr><td style="padding: 6px 0; color: #64748b;">Enrollment Cap</td><td style="font-weight: 600; color: #1e293b;">{{ course.enrollment_cap if course.enrollment_cap else 'Unlimited' }}</td></tr>
+                            {% if course.created_at %}<tr><td style="padding: 6px 0; color: #64748b;">Created</td><td style="font-weight: 600; color: #1e293b;">{{ course.created_at.strftime('%Y-%m-%d') }}</td></tr>{% endif %}
+                        </table>
+                    </div>
+
+                    <!-- Right: Modules list -->
+                    <div>
+                        <h4 style="font-size: 0.8rem; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; margin-bottom: 14px;">Modules ({{ course.modules|length }})</h4>
+                        {% if course.modules %}
+                        <div style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                            {% for mod in course.modules %}
+                            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: 600; color: #1e293b;">{{ loop.index }}. {{ mod.title }}</span>
+                                <span style="font-size: 0.7rem; color: {{ '#15803d' if mod.is_published else '#94a3b8' }};">{{ '✓ Published' if mod.is_published else 'Draft' }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div style="color: #94a3b8; font-size: 0.85rem; padding: 12px; background: white; border-radius: 8px; border: 1px dashed #e2e8f0;">No modules added yet.</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div style="display: flex; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid #f1f5f9; flex-wrap: wrap;">
+                    <button onclick="openEditModal({{ course.id }}, '{{ course.code }}', '{{ course.title | replace("'","\\'" ) }}', {{ course.instructor_id or 'null' }}, {{ course.enrollment_cap or 'null' }}, '{{ course.status or 'draft' }}', '{{ course.description or '' | replace("'", "\\'") }}')"
+                            class="btn-primary" style="padding: 8px 18px; font-size: 0.85rem; background: #1a3560;">
+                        ✏️ Edit Course
+                    </button>
+                    <form action="{{ url_for('manage_courses') }}" method="POST" style="margin: 0;"
+                          onsubmit="return confirm('Permanently delete \'{{ course.title }}\' and all associated data?');">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="course_id" value="{{ course.id }}">
+                        <button type="submit" style="padding: 8px 18px; border-radius: 8px; font-size: 0.85rem; border: 1px solid #fca5a5; background: #fff1f2; color: #dc2626; cursor: pointer; font-weight: 600;">
+                            🗑 Delete Course
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 60px 20px; color: #94a3b8;">
+            <div style="font-size: 3rem; margin-bottom: 12px;">📭</div>
+            <p>No courses found. Create your first one!</p>
+        </div>
+        {% endfor %}
+    </div>
 </div>
+
+<!-- ════════════ ADD COURSE MODAL ════════════ -->
+<div id="addCourseModal" style="display:none; position: fixed; inset: 0; background: rgba(15,23,42,0.5); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(3px);">
+    <div style="background: white; border-radius: 16px; padding: 36px; width: 100%; max-width: 540px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto;">
+        <button onclick="closeModal('addCourseModal')" style="position: absolute; top: 16px; right: 16px; background: #f1f5f9; border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 1rem; cursor: pointer; color: #64748b;">✕</button>
+        <h2 style="margin: 0 0 6px; font-size: 1.3rem; color: #1e293b;">Create New Course</h2>
+        <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 24px;">Deploy a new course container to the platform.</p>
+
+        <form action="{{ url_for('manage_courses') }}" method="POST" style="display: flex; flex-direction: column; gap: 16px;">
+            <input type="hidden" name="action" value="create">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Course Code *</label>
+                    <input type="text" name="code" placeholder="e.g. CS-302" required
+                           style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; box-sizing: border-box;">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Status</label>
+                    <select name="status" style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; box-sizing: border-box;">
+                        <option value="draft">🟡 Draft</option>
+                        <option value="active">🟢 Active</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Course Title *</label>
+                <input type="text" name="title" placeholder="e.g. Advanced Database Systems" required
+                       style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; box-sizing: border-box;">
+            </div>
+
+            <div>
+                <label style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Description</label>
+                <textarea name="description" rows="3" placeholder="Brief course overview…"
+                          style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; resize: vertical; box-sizing: border-box;"></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Assign Lecturer</label>
+                    <select name="instructor_id" style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; box-sizing: border-box;">
+                        <option value="">— None —</option>
+                        {% for l in lecturers %}
+                        <option value="{{ l.id }}">{{ l.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Enrollment Cap</label>
+                    <input type="number" name="enrollment_cap" placeholder="Unlimited"
+                           style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; box-sizing: border-box;">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" style="padding: 13px; font-size: 0.95rem; border-radius: 10px; margin-top: 8px;">
+                🚀 Publish Course
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- ════════════ EDIT COURSE MODAL ════════════ -->
+<div id="editCourseModal" style="display:none; position: fixed; inset: 0; background: rgba(15,23,42,0.5); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(3px);">
+    <div style="background: white; border-radius: 16px; padding: 36px; width: 100%; max-width: 540px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto;">
+        <button onclick="closeModal('editCourseModal')" style="position: absolute; top: 16px; right: 16px; background: #f1f5f9; border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 1rem; cursor: pointer; color: #64748b;">✕</button>
+        <h2 style="margin: 0 0 6px; font-size: 1.3rem; color: #1e293b;">Edit Course</h2>
+        <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 24px;">Update course details below.</p>
+
+        <form action="{{ url_for('manage_courses') }}" method="POST" style="display: flex; flex-direction: column; gap: 16px;">
+            <input type="hidden" name="action" value="edit">
+            <input type="hidden" name="course_id" id="editCourseId">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Course Code *</label>
+                    <input type="text" name="code" id="editCode" required
+                           style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; box-sizing: border-box;">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Status</label>
+                    <select name="status" id="editStatus" style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; box-sizing: border-box;">
+                        <option value="draft">🟡 Draft</option>
+                        <option value="active">🟢 Active</option>
+                        <option value="archived">🔴 Archived</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Course Title *</label>
+                <input type="text" name="title" id="editTitle" required
+                       style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; box-sizing: border-box;">
+            </div>
+
+            <div>
+                <label style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Description</label>
+                <textarea name="description" id="editDescription" rows="3"
+                          style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; resize: vertical; box-sizing: border-box;"></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Assign Lecturer</label>
+                    <select name="instructor_id" id="editInstructor" style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; box-sizing: border-box;">
+                        <option value="">— None —</option>
+                        {% for l in lecturers %}
+                        <option value="{{ l.id }}">{{ l.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Enrollment Cap</label>
+                    <input type="number" name="enrollment_cap" id="editCap" placeholder="Unlimited"
+                           style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; box-sizing: border-box;">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" style="padding: 13px; font-size: 0.95rem; border-radius: 10px; margin-top: 8px;">
+                💾 Save Changes
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Toggle row expansion
+    function toggleDetail(summaryEl) {
+        const row = summaryEl.closest('.course-row');
+        const detail = row.querySelector('.course-detail');
+        const chevron = row.querySelector('.chevron');
+        const isOpen = detail.style.display === 'block';
+        detail.style.display = isOpen ? 'none' : 'block';
+        chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
+        if (!isOpen) row.style.boxShadow = '0 4px 16px rgba(26,53,96,0.12)';
+        else row.style.boxShadow = '0 1px 4px rgba(0,0,0,0.06)';
+    }
+
+    // Open Add Modal
+    document.getElementById('openAddCourseModal').addEventListener('click', () => {
+        const m = document.getElementById('addCourseModal');
+        m.style.display = 'flex';
+    });
+
+    // Close any modal
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    // Close on backdrop click
+    ['addCourseModal', 'editCourseModal'].forEach(id => {
+        document.getElementById(id).addEventListener('click', function(e) {
+            if (e.target === this) closeModal(id);
+        });
+    });
+
+    // Open Edit Modal with prefilled values
+    function openEditModal(id, code, title, instructorId, cap, status, description) {
+        document.getElementById('editCourseId').value = id;
+        document.getElementById('editCode').value = code;
+        document.getElementById('editTitle').value = title;
+        document.getElementById('editDescription').value = description || '';
+        document.getElementById('editCap').value = cap || '';
+        const statusEl = document.getElementById('editStatus');
+        if (statusEl) statusEl.value = status || 'draft';
+        const instrEl = document.getElementById('editInstructor');
+        if (instrEl && instructorId) instrEl.value = instructorId;
+        document.getElementById('editCourseModal').style.display = 'flex';
+    }
+
+    // Live search filter
+    function filterCourses() {
+        const q = document.getElementById('courseSearch').value.toLowerCase();
+        document.querySelectorAll('.course-row').forEach(row => {
+            const hay = row.dataset.search || '';
+            row.style.display = hay.includes(q) ? 'block' : 'none';
+        });
+    }
+
+    // Close modals with Escape key
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            closeModal('addCourseModal');
+            closeModal('editCourseModal');
+        }
+    });
+</script>
 {% endblock %}

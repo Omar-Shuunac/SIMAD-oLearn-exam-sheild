@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% set active_page = 'dashboard' %}
+
+{% block title %}Content Moderation - SIMAD oLearn{% endblock %}
+{% block header_title %}Content Integrity & Moderation{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Global Content Moderation</h1>
+        <p>Oversee all question banks and learning materials to enforce institutional quality policies.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div style="padding: 10px 15px; background: #e8f5e9; color: #15803d; border-radius: 8px; margin-bottom: 20px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card-modular" style="padding: 0; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background: #f9fbfd; border-bottom: 1px solid #f0f0f0;">
+                    <th style="padding: 16px 24px; color: #a0a0a0; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">Q-ID</th>
+                    <th style="padding: 16px 24px; color: #a0a0a0; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">Content Preview</th>
+                    <th style="padding: 16px 24px; color: #a0a0a0; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">Points</th>
+                    <th style="padding: 16px 24px; color: #a0a0a0; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for q in questions %}
+                <tr style="border-bottom: 1px solid #f8f8f8; cursor: pointer;" onmouseover="this.style.background='#fcfdff'" onmouseout="this.style.background='white'">
+                    <td style="padding: 16px 24px; font-size: 0.85rem; color: #888;">#{{ q.id }}</td>
+                    <td style="padding: 16px 24px; max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">
+                        {{ q.text }}
+                    </td>
+                    <td style="padding: 16px 24px; font-size: 0.85rem; font-weight: 600;">{{ q.points }}</td>
+                    <td style="padding: 16px 24px;">
+                        <form action="{{ url_for('content_moderation') }}" method="POST" onsubmit="return confirm('Purge this question permanently across the platform?');" style="margin: 0;">
+                            <input type="hidden" name="action" value="delete_question">
+                            <input type="hidden" name="question_id" value="{{ q.id }}">
+                            <button type="submit" style="padding: 6px 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; border-radius: 6px; font-size: 0.75rem; cursor: pointer; font-weight: 600;">Purge Quality Violation</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" style="padding: 24px; text-align: center; color: #a0a0a0;">No content flagged for moderation.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

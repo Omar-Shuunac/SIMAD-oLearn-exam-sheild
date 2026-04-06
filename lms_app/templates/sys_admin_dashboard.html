@@ -108,6 +108,38 @@
             <a href="{{ url_for('manage_courses') }}" class="nav-item a active" style="padding: 8px 18px; border-radius: 10px; font-size: 0.75rem; text-decoration: none; border: none; cursor: pointer; display: inline-block;">Catalog Hub</a>
         </div>
 
+        <!-- Global Configuration -->
+        <div class="card-modular" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: #fffbeb; color: #b45309; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 15px;">⚙️</div>
+            <h4 style="font-weight: 700; font-size: 0.95rem; margin-bottom: 6px;">Global Platform Settings</h4>
+            <p style="font-size: 0.75rem; color: #a0a0a0; margin-bottom: 15px;">SSO, Mail, Themes</p>
+            <a href="{{ url_for('system_config') }}" class="btn-primary" style="padding: 8px 18px; border-radius: 10px; font-size: 0.75rem; text-decoration: none; background: #b45309;">Edit Settings</a>
+        </div>
+
+        <!-- Audit & Compliance -->
+        <div class="card-modular" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 15px;">📄</div>
+            <h4 style="font-weight: 700; font-size: 0.95rem; margin-bottom: 6px;">Data Compliance</h4>
+            <p style="font-size: 0.75rem; color: #a0a0a0; margin-bottom: 15px;">Export platform audit trails</p>
+            <a href="{{ url_for('export_audit') }}" class="btn-primary" style="padding: 8px 18px; border-radius: 10px; font-size: 0.75rem; text-decoration: none; background: #dc2626;">Download CSV</a>
+        </div>
+
+        <!-- Content Moderation -->
+        <div class="card-modular" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 15px;">🛡️</div>
+            <h4 style="font-weight: 700; font-size: 0.95rem; margin-bottom: 6px;">Global Content Safety</h4>
+            <p style="font-size: 0.75rem; color: #a0a0a0; margin-bottom: 15px;">Monitor all generated/submitted items</p>
+            <a href="{{ url_for('content_moderation') }}" class="btn-primary" style="padding: 8px 18px; border-radius: 10px; font-size: 0.75rem; text-decoration: none; background: #4338ca;">Review Content</a>
+        </div>
+
+        <!-- Global Communication -->
+        <div class="card-modular" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: #ede9fe; color: #7c3aed; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 15px;">📢</div>
+            <h4 style="font-weight: 700; font-size: 0.95rem; margin-bottom: 6px;">Global Comms Link</h4>
+            <p style="font-size: 0.75rem; color: #a0a0a0; margin-bottom: 15px;">Broadcasts & Email Actions</p>
+            <a href="{{ url_for('manage_announcements') }}" class="btn-primary" style="padding: 8px 18px; border-radius: 10px; font-size: 0.75rem; text-decoration: none; background: #7c3aed;">Message Hub</a>
+        </div>
+
     </div>
 </div>
 {% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% set active_page = 'dashboard' %}
+
+{% block title %}Global Communications - SIMAD oLearn{% endblock %}
+{% block header_title %}Platform Messaging Hub{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Global Announcements</h1>
+        <p>Broadcast messages to all platform users instantly.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div style="padding: 10px 15px; background: #e8f5e9; color: #15803d; border-radius: 8px; margin-bottom: 20px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="dashboard-grid" style="grid-template-columns: 1fr 2fr;">
+        <!-- Publish form -->
+        <div class="card-modular" style="background: #eef2ff;">
+            <h3 style="margin-top: 0;">Broadcast New Message</h3>
+            <form action="{{ url_for('manage_announcements') }}" method="POST" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+                <input type="hidden" name="action" value="create">
+                
+                <label style="font-size: 0.8rem; font-weight: 700; color: #334155;">Title</label>
+                <input type="text" name="title" required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;">
+                
+                <label style="font-size: 0.8rem; font-weight: 700; color: #334155;">Message Body</label>
+                <textarea name="body" rows="5" required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; resize: vertical;"></textarea>
+                
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #334155; font-weight: 600;">
+                    <input type="checkbox" name="is_pinned"> Pin to top for all users
+                </label>
+                
+                <button type="submit" class="btn-primary" style="padding: 12px; margin-top: 10px; font-size: 0.9rem;">Broadcast Message</button>
+            </form>
+        </div>
+
+        <!-- History -->
+        <div class="card-modular">
+            <h3 style="margin-top: 0; margin-bottom: 20px;">Broadcast History</h3>
+            
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                {% for a in announcements %}
+                <div style="padding: 15px; border: 1px solid #f1f5f9; border-radius: 8px; background: #fff;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <h4 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                                {{ a.title }}
+                                {% if a.is_pinned %}
+                                <span style="background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; text-transform: uppercase;">Pinned</span>
+                                {% endif %}
+                            </h4>
+                            <p style="font-size: 0.75rem; color: #94a3b8; margin: 4px 0 10px 0;">Posted {{ a.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        </div>
+                        
+                        <form action="{{ url_for('manage_announcements') }}" method="POST" onsubmit="return confirm('Delete this announcement?');" style="margin: 0;">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="announcement_id" value="{{ a.id }}">
+                            <button type="submit" style="background: none; border: none; color: #ef4444; font-size: 0.8rem; cursor: pointer; font-weight: 600;">Remove</button>
+                        </form>
+                    </div>
+                    <div style="font-size: 0.9rem; color: #334155; line-height: 1.5;">
+                        {{ a.body }}
+                    </div>
+                </div>
+                {% else %}
+                <p style="color: #94a3b8; font-size: 0.9rrm;">No global announcements active.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

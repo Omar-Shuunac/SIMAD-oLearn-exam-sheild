@@ -137,6 +137,13 @@ MIGRATIONS = [
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
     )""",
+
+    """CREATE TABLE IF NOT EXISTS system_config (
+        key VARCHAR(100) PRIMARY KEY,
+        value TEXT,
+        description VARCHAR(255),
+        updated_at TIMESTAMP DEFAULT NOW()
+    )""",
 ]
 
 with app.app_context():
